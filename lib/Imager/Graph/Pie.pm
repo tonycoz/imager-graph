@@ -495,6 +495,8 @@ sub _style_defs {
 1;
 __END__
 
+=back
+
 =head1 AUTHOR
 
 Tony Cook <tony@develop-help.com>

@@ -1,0 +1,9 @@
+^\.svn\b
+^testout/
+~$
+/\.svn/
+^blib/
+^Makefile$
+^Makefile\.old$
+^pm_to_blib$
+

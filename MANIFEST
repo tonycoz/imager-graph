@@ -2,6 +2,7 @@ Changes         A list of changes :)
 Graph.pm
 ImUgly.ttf      A moderately ugly font
 MANIFEST
+MANIFEST.SKIP
 Makefile.PL
 README
 TODO
@@ -9,6 +10,8 @@ lib/Imager/Graph/Pie.pm
 lib/Imager/Graph/Util.pm
 t/t00load.t
 t/t10pie.t
+t/t91pod.t
+t/t93podcover.t
 testimg/t10_lin_fount.png       Test output comparison images
 testimg/t10_mono.png
 testimg/t10_pie1.png

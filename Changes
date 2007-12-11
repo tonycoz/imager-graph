@@ -1,4 +1,4 @@
-Revision history for Perl extension Graph::Imager.
+Revision history for Perl extension Imager::Graph.
 
 Imager-Graph 0.04
 =================
@@ -18,6 +18,8 @@ Imager-Graph 0.04
 
  - strictify Makefile.PL, include the LICENSE, use the correct version
    check for including the extra WriteMakefile keys
+
+ - various changes for Kwalitee
 
 Imager-Graph 0.02  Sat Oct  6 20:36:31 2001
 =================

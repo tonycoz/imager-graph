@@ -1,4 +1,5 @@
 package Imager::Graph;
+require 5.005;
 
 =head1 NAME
 
@@ -35,7 +36,7 @@ use strict;
 use vars qw($VERSION);
 use Imager qw(:handy);
 
-$VERSION = '0.03';
+$VERSION = '0.03_01';
 
 my $fancy_fills = 0;
 my ($im_version) = ($Imager::VERSION =~ /(\d\.[\d_]+)/);
@@ -1452,6 +1453,10 @@ Imager::Graph::Pie(3), Imager(3), perl(1).
 =head1 AUTHOR
 
 Tony Cook <tony@develop-help.com>
+
+=head1 LICENSE
+
+Imager::Graph is licensed under the same terms as perl itself.
 
 =head1 BLAME
 
