@@ -1,0 +1,10 @@
+Revision history for Perl extension Graph::Imager.
+
+0.02  Sat Oct  6 20:36:31 2001
+ - replace ImUgly.ttf with a new version where % renders on my older PC
+ - remove some old test code that printed the Imager version
+ - moved into local CVS to simplify cross-platform tests
+      
+0.01  Tue Sep 12 23:03:25 2001
+ - original version; created by h2xs 1.19
+ - can draw some nice pie graphs
