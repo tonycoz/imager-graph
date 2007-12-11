@@ -1,10 +1,33 @@
 Revision history for Perl extension Graph::Imager.
 
-0.02  Sat Oct  6 20:36:31 2001
+Imager-Graph 0.04
+=================
+
+ - skip all tests if we can't load the font
+
+ - Save test results to ppm, so we can generate images even if we don't
+   have PNG support in Imager.
+
+ - instead of the old draw-no-aa-then-blur-the-result hack, we now use
+   arc()'s aa option
+
+ - tests now use Test::More
+
+ - remove the old circle fudge hack, since Imager fixed arc fills a
+   while ago
+
+ - strictify Makefile.PL, include the LICENSE, use the correct version
+   check for including the extra WriteMakefile keys
+
+Imager-Graph 0.02  Sat Oct  6 20:36:31 2001
+=================
+
  - replace ImUgly.ttf with a new version where % renders on my older PC
  - remove some old test code that printed the Imager version
  - moved into local CVS to simplify cross-platform tests
       
-0.01  Tue Sep 12 23:03:25 2001
+Imager-Graph 0.01  Tue Sep 12 23:03:25 2001
+=================
+
  - original version; created by h2xs 1.19
  - can draw some nice pie graphs

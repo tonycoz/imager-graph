@@ -35,14 +35,6 @@ use POSIX qw(floor);
 
 use constant PI => 3.1415926535;
 
-# Imager doesn't have a arc boundary function, and the obvious code
-# either leaves gaps between the circle and the fill, or has some of the
-# fill outside the outline.  These fudge factors produced good results
-# for the test images <sigh>
-use constant CIRCLE_FUDGE_X => 0.4;
-use constant CIRCLE_FUDGE_Y => 0.4;
-use constant CIRCLE_RADIUS_FUDGE => 0.2;
-
 =item $graph->draw(...)
 
 Draws a pie graph onto a new image and returns the image.
@@ -84,10 +76,6 @@ the segments are labels with their percentages only.
 =item allcallouts
 
 all labels are presented as callouts
-
-=item pieblur
-
-the segments are blurred, as a substitute for anti-aliased arcs
 
 =item outline
 
@@ -277,7 +265,7 @@ sub draw {
       or return;
     my $offy = $self->_get_number('dropshadow.offy');
     for my $item (@info) {
-      $img->arc(x=>$cx+$offx, 'y'=>$cy+$offy, r=>$radius+1,
+      $img->arc(x=>$cx+$offx, 'y'=>$cy+$offy, r=>$radius+1, aa => 1,
                 d1=>180/PI * $item->{begin}, d2=>180/PI * $item->{end},
                 @shadow_fill);
     }
@@ -287,32 +275,26 @@ sub draw {
                           'dropshadow.filter')
       if $style->{dropshadow}{filter};
   }
+
   my @fill_box = ( $cx-$radius, $cy-$radius, $cx+$radius, $cy+$radius );
   for my $item (@info) {
     my @fill = $self->_data_fill($item->{index}, \@fill_box)
       or return;
-    $img->arc(x=>$cx, 'y'=>$cy, r=>$radius, 
+    $img->arc(x=>$cx, 'y'=>$cy, r=>$radius, aa => 1,
               d1=>180/PI * $item->{begin}, d2=>180/PI * $item->{end},
               @fill);
-  }
-  if ($style->{features}{pieblur}) {
-    $self->_pieblur($img, $cx, $cy, $radius);
   }
   if ($style->{features}{outline}) {
     my $outcolor = $self->_get_color('outline.line');
     for my $item (@info) {
-      my $px = int($cx + CIRCLE_FUDGE_X + 
-                   ($radius+CIRCLE_RADIUS_FUDGE) * cos($item->{begin}));
-      my $py = int($cy + CIRCLE_FUDGE_Y + 
-                   ($radius+CIRCLE_RADIUS_FUDGE) * sin($item->{begin}));
+      my $px = int($cx + $radius * cos($item->{begin}));
+      my $py = int($cy + $radius * sin($item->{begin}));
       $img->line(x1=>$cx, y1=>$cy, x2=>$px, y2=>$py, color=>$outcolor);
       for (my $i = $item->{begin}; $i < $item->{end}; $i += PI/180) {
 	my $stroke_end = $i + PI/180;
 	$stroke_end = $item->{end} if $stroke_end > $item->{end};
-	my $nx = int($cx + CIRCLE_FUDGE_X + 
-                     ($radius+CIRCLE_RADIUS_FUDGE) * cos($stroke_end));
-	my $ny = int($cy + CIRCLE_FUDGE_Y + 
-                     ($radius+CIRCLE_RADIUS_FUDGE) * sin($stroke_end));
+	my $nx = int($cx + $radius * cos($stroke_end));
+	my $ny = int($cy + $radius * sin($stroke_end));
 	$img->line(x1=>$px, y1=>$py, x2=>$nx, y2=>$ny, color=>$outcolor,
 		  antialias=>1);
 	($px, $py) = ($nx, $ny);
@@ -402,45 +384,6 @@ sub _consolidate_segments {
     }
     push(@$labels, $self->{_style}{otherlabel}) if @$labels;
     push(@$data, $others);
-  }
-}
-
-=item _pieblur($img, $cx, $cy, $radius)
-
-Blurs the pie as a substitute for anti-aliased segments.
-
-=cut
-
-sub _pieblur {
-  my ($self, $img, $cx, $cy, $radius) = @_;
-
-  my $left = $cx - $radius - 2;
-  $left > 1 or $left = 2;
-  my $right = $cx + $radius + 2;
-  my $top = $cy - $radius - 2;
-  $top > 1 or $top = 2;
-  my $bottom = $cy + $radius + 2;
-
-  my $filter = $self->_get_thing("pie.blur")
-    or return;
-  
-  # newer versions of Imager let you work on just part of an image
-  if ($img->can('masked') && !$self->{_style}{features}{_debugblur}) {
-    # the mask prevents the blur from leaking over the edges
-    my $mask = Imager->new(xsize=>$right-$left, ysize=>$bottom-$top, 
-                           channels=>1);
-    $mask->arc(x=>$cx-$left, 'y'=>$cy-$top, r=>$radius);
-    my $masked = $img->masked(mask=>$mask,
-                              left=>$left, top=>$top,
-                              right=>$right, bottom=>$bottom);
-    $masked->filter(%{$self->{_style}{pie}{blur}});
-  }
-  else {
-    # for older versions of Imager
-    my $subset = $img->crop(left=>$left, top=>$top,
-                            right=>$right, bottom=>$bottom);
-    $subset->filter(%{$self->{_style}{pie}{blur}});
-    $img->paste(left=>$left, top=>$top, img=>$subset);
   }
 }
 

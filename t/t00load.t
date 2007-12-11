@@ -1,10 +1,4 @@
 #!perl -w
 use strict;
-my $loaded;
-BEGIN { print "1..1\n"; };
-
-use Imager::Graph::Pie;
-++$loaded;
-print "ok 1\n";
-
-END { print "not ok 1\n" unless $loaded; }
+use Test::More tests => 1;
+use_ok('Imager::Graph::Pie');
