@@ -21,6 +21,9 @@ Imager-Graph 0.04
 
  - various changes for Kwalitee
 
+ - remove fancy_fills check, we now depend on an Imager release that
+   supports fountain fills.
+
 Imager-Graph 0.02  Sat Oct  6 20:36:31 2001
 =================
 

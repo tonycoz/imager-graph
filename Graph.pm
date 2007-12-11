@@ -35,15 +35,9 @@ and image fills, and masked images.
 use strict;
 use vars qw($VERSION);
 use Imager qw(:handy);
+use Imager::Fountain;
 
 $VERSION = '0.03_01';
-
-my $fancy_fills = 0;
-my ($im_version) = ($Imager::VERSION =~ /(\d\.[\d_]+)/);
-if ($im_version > 0.38) {
-  ++$fancy_fills;
-  require 'Imager/Fountain.pm';
-}
 
 # the maximum recursion depth in determining a color, fill or number
 use constant MAX_DEPTH => 10;
@@ -731,10 +725,7 @@ my %styles =
            blur=>undef,
           },
    },
-  );
-
-if ($fancy_fills) {
-  $styles{fount_lin} =
+   fount_lin =>
    {
     fills=>
     [
@@ -779,9 +770,9 @@ if ($fancy_fills) {
     fg=>'000000',
     bg=>'FFFFFF',
     features=>{ dropshadow=>1 },
-   };
-   $styles{fount_rad} =
-     {
+   },
+   fount_rad =>
+   {
     fills=>
     [
      { fountain=>'radial',
@@ -823,8 +814,8 @@ if ($fancy_fills) {
               colors=>[ NC('6060FF'), NC('60FF60') ]) },
     fg=>'000000',
     bg=>'FFFFFF',
-   };
-}
+   }
+  );
 
 =item $self->_style_setup(\%opts)
 
@@ -950,6 +941,7 @@ in the style and the product is returned.
 =back
 
 =cut
+
 sub _get_number {
   my ($self, $name, @depth) = @_;
 
