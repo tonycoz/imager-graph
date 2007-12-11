@@ -1,7 +1,10 @@
 Revision history for Perl extension Imager::Graph.
 
-Imager-Graph 0.04
+Imager-Graph 0.04 - 11 December 2007
 =================
+
+This is a clean up release, removing code required for ancient
+releases of Imager, and otherwise modernizing the code.
 
  - skip all tests if we can't load the font
 
