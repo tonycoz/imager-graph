@@ -14,7 +14,7 @@ my $testnum = 1;
 use Imager qw(:handy);
 
 my $fontfile = 'ImUgly.ttf';
-my $font = Imager::Font->new(file=>$fontfile, aa=>1)
+my $font = Imager::Font->new(file=>$fontfile, type => 'ft2', aa=>1)
   or plan skip_all => "Cannot create font object: ",Imager->errstr,"\n";
 
 my @data = ( 100, 180, 80, 20, 2, 1, 0.5 );
