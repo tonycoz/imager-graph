@@ -8,6 +8,7 @@ README
 TODO
 lib/Imager/Graph/Pie.pm
 lib/Imager/Graph/Util.pm
+t/lib/Imager/Font/Test.pm
 t/t00load.t
 t/t10pie.t
 t/t91pod.t
