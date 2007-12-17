@@ -1,4 +1,4 @@
-Copyright 2000, Anthony Cook.  All rights reserved.
+Copyright 2000-2002,2007 Anthony Cook.  All rights reserved.
 This program is free software, you can redistribute it and/or
 modify it under the same terms as Perl itself.
 
@@ -10,19 +10,6 @@ Imager::Graph is intended to produce good looking graphs with a
 minimum effort on the part of the user.  Hopefully I've managed that.
 
 Currently only the pie graph class, Imager::Graph::Pie, is provided.
-
-
-Imager
-======
-
-Imager::Graph can push the limits of the capabilities that Imager
-provides, the default "style" will work with Imager 0.38, but the
-other default styles require current CVS or Imager 0.39 when it is
-released.  Note that current CVS includes bug fixes that may have an
-effect on the appearance of the final output.
-
-Once you have Imager installed, and an appropriate font, Imager::Graph
-should just work, there are no other dependencies.
 
 
 Fonts
