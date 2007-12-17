@@ -19,15 +19,6 @@ defines the colors, text display information and fills based on both
 built-in styles and modifications supplied by the user to the draw()
 method.
 
-For best results you need a version of Imager after 0.38.  At the time
-of writing this is only available via CVS:
-
-  cvs -d :pserver:anoncvs@cvs.imager.perl.org:/u02/cvsroot login
-  cvs -d :pserver:anoncvs@cvs.imager.perl.org:/u02/cvsroot co Imager
-
-This provides extra file format support, fountain (gradient), hatch
-and image fills, and masked images.
-
 =over
 
 =cut
