@@ -981,6 +981,22 @@ sub _get_number {
   }
 }
 
+=item $self->_get_integer($name)
+
+Retrieves an integer from the style.  This is a simple wrapper around
+_get_number() that rounds the result to an integer.
+
+=cut
+
+sub _get_integer {
+  my ($self, $name, @depth) = @_;
+
+  my $number = $self->_get_number($name, @depth)
+    or return;
+
+  return sprintf("%.0f", $number);
+}
+
 =item _get_color($name)
 
 Returns a color object of the given name from the style hash.
@@ -1271,11 +1287,11 @@ sub _remove_box {
 sub _draw_legend {
   my ($self, $img, $labels, $chart_box) = @_;
 
-  defined(my $padding = $self->_get_number('legend.padding'))
+  defined(my $padding = $self->_get_integer('legend.padding'))
     or return;
-  my $patchsize = $self->_get_number('legend.patchsize')
+  my $patchsize = $self->_get_integer('legend.patchsize')
     or return;
-  defined(my $gap = $self->_get_number('legend.patchgap'))
+  defined(my $gap = $self->_get_integer('legend.patchgap'))
     or return;
   my $minrowsize = $patchsize + $gap;
   my ($width, $height) = (0,0);

@@ -5,6 +5,9 @@ Imager-Graph 0.06 - unreleased
 
  - Removed ancient Imager cruft from the documentation
 
+ - round the dimensions used within the legend to integers to prevent
+   later truncation from causing uneven output.
+
 Imager-Graph 0.05 - 17 December 2007
 =================
 
