@@ -14,6 +14,10 @@ Imager-Graph 0.06 - unreleased
    background, and made that the default, so the default graphs aren't
    quite so ugly.
 
+ - zero-sized segments were drawn as covering the whole pie.  Skip
+   drawing zero sized segments.
+   https://rt.cpan.org/Ticket/Display.html?id=34813
+
 Imager-Graph 0.05 - 17 December 2007
 =================
 

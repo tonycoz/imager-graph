@@ -11,8 +11,6 @@ use Test::More;
 
 ++$|;
 
-my $testnum = 1;
-
 use Imager qw(:handy);
 
 #my $fontfile = 'ImUgly.ttf';
@@ -23,7 +21,7 @@ my $font = Imager::Font::Test->new();
 my @data = ( 100, 180, 80, 20, 2, 1, 0.5 );
 my @labels = qw(alpha beta gamma delta epsilon phi gi);
 
-plan tests => 13;
+plan tests => 16;
 
 my $pie = Imager::Graph::Pie->new;
 ok($pie, "creating pie chart object");
@@ -61,60 +59,74 @@ cmpimg($img2, "testimg/t10_pie2.png", 255956289);
 $img2->write(file=>'testout/t10_pie2.ppm')
   or die "Cannot save pie2: ",$img2->errstr,"\n";
 
-my ($im_version) = $Imager::VERSION =~ /(\d\.[\d_]+)/;
+my $img3 = $pie->draw(data=>\@data, labels=>\@labels,
+		      font=>$font, style=>'fount_lin', 
+		      features=>[ 'legend', 'labelspconly', ],
+		      legend=>{ valign=>'center' });
+ok($img3, "third chart")
+  or print "# ",$pie->error,"\n";
+$img3->write(file=>'testout/t10_lin_fount.ppm')
+  or die "Cannot save pie3: ",$img3->errstr,"\n";
+cmpimg($img3, "testimg/t10_lin_fount.png", 180_000);
+
+my $img4 = $pie->draw(data=>\@data, labels=>\@labels,
+		      font=>$font, style=>'fount_rad', 
+		      features=>[ 'legend', 'labelspc', ],
+		      legend=>{ valign=>'bottom', 
+				halign=>'left',
+				border=>'000080' });
+ok($img4, "fourth chart")
+  or print "# ",$pie->error,"\n";
+$img4->write(file=>'testout/t10_rad_fount.ppm')
+  or die "Cannot save pie3: ",$img4->errstr,"\n";
+cmpimg($img4, "testimg/t10_rad_fount.png", 120_000);
+
+my $img5 = $pie->draw(data=>\@data, labels=>\@labels,
+		      font=>$font, style=>'mono', 
+		      features=>[ 'allcallouts', 'labelspc' ],
+		      legend=>{ valign=>'bottom', 
+				halign=>'right' });
+ok($img5, "fifth chart")
+  or print "# ",$pie->error,"\n";
+$img5->write(file=>'testout/t10_mono.ppm')
+  or die "Cannot save pie3: ",$img5->errstr,"\n";
+cmpimg($img5, "testimg/t10_mono.png", 550_000);
+
+my $img6 = $pie->draw(data=>\@data, labels=>\@labels,
+		      font=>$font, style=>'fount_lin', 
+		      features=>[ 'allcallouts', 'labelspc', 'legend' ],
+		      legend=>
+		      {
+		       valign=>'top', 
+		       halign=>'center',
+		       orientation => 'horizontal',
+		       fill => { solid => Imager::Color->new(0, 0, 0, 32) },
+		       patchborder => undef,
+		       #size => 30,
+		      });
+ok($img6, "sixth chart")
+  or print "# ",$pie->error,"\n";
+$img6->write(file=>'testout/t10_hlegend.ppm')
+  or die "Cannot save pie6: ",$img5->errstr,"\n";
+cmpimg($img6, "testimg/t10_hlegend.png", 550_000);
+
 {
-  $im_version > 0.38
-    or skip("very old Imager", 6);
-  my $img3 = $pie->draw(data=>\@data, labels=>\@labels,
-                        font=>$font, style=>'fount_lin', 
-                        features=>[ 'legend', 'labelspconly', ],
-                        legend=>{ valign=>'center' });
-  ok($img3, "third chart")
-    or print "# ",$pie->error,"\n";
-  $img3->write(file=>'testout/t10_lin_fount.ppm')
-    or die "Cannot save pie3: ",$img3->errstr,"\n";
-  cmpimg($img3, "testimg/t10_lin_fount.png", 180_000);
-
-  my $img4 = $pie->draw(data=>\@data, labels=>\@labels,
-                        font=>$font, style=>'fount_rad', 
-                        features=>[ 'legend', 'labelspc', ],
-                        legend=>{ valign=>'bottom', 
-                                  halign=>'left',
-                                  border=>'000080' });
-  ok($img4, "fourth chart")
-    or print "# ",$pie->error,"\n";
-  $img4->write(file=>'testout/t10_rad_fount.ppm')
-    or die "Cannot save pie3: ",$img4->errstr,"\n";
-  cmpimg($img4, "testimg/t10_rad_fount.png", 120_000);
-
-  my $img5 = $pie->draw(data=>\@data, labels=>\@labels,
-                        font=>$font, style=>'mono', 
-                        features=>[ 'allcallouts', 'labelspc' ],
-                        legend=>{ valign=>'bottom', 
-                                  halign=>'right' });
-  ok($img5, "fifth chart")
-    or print "# ",$pie->error,"\n";
-  $img5->write(file=>'testout/t10_mono.ppm')
-    or die "Cannot save pie3: ",$img5->errstr,"\n";
-  cmpimg($img5, "testimg/t10_mono.png", 550_000);
-
-  my $img6 = $pie->draw(data=>\@data, labels=>\@labels,
-                        font=>$font, style=>'fount_lin', 
-                        features=>[ 'allcallouts', 'labelspc', 'legend' ],
-                        legend=>
-			{
-			 valign=>'top', 
-			 halign=>'center',
-			 orientation => 'horizontal',
-			 fill => { solid => Imager::Color->new(0, 0, 0, 32) },
-			 patchborder => undef,
-			 #size => 30,
-			});
-  ok($img6, "sixth chart")
-    or print "# ",$pie->error,"\n";
-  $img6->write(file=>'testout/t10_hlegend.ppm')
-    or die "Cannot save pie6: ",$img5->errstr,"\n";
-  cmpimg($img6, "testimg/t10_hlegend.png", 550_000);
+  # RT #34813
+  # zero sized segments were drawn to cover the whole circle
+  my @data = ( 10, 8, 5, 0.000 );
+  my @labels = qw(alpha beta gamma);
+  
+  my $img = $pie->draw
+    (
+     data => \@data, 
+     labels => \@labels, 
+     font => $font,
+     features => [ 'legend', 'labelspc', 'outline' ],
+    );
+  ok($img, "create graph with no 'others'");
+  ok($img->write(file => 'testout/t10_noother.ppm'),
+     "save it");
+  cmpimg($img, 'testimg/t10_noother.png', 500_000);
 }
 
 sub cmpimg {

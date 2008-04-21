@@ -278,6 +278,8 @@ sub draw {
 
   my @fill_box = ( $cx-$radius, $cy-$radius, $cx+$radius, $cy+$radius );
   for my $item (@info) {
+    $item->{begin} < $item->{end}
+      or next;
     my @fill = $self->_data_fill($item->{index}, \@fill_box)
       or return;
     $img->arc(x=>$cx, 'y'=>$cy, r=>$radius, aa => 1,
@@ -289,6 +291,8 @@ sub draw {
     for my $item (@info) {
       my $px = int($cx + $radius * cos($item->{begin}));
       my $py = int($cy + $radius * sin($item->{begin}));
+      $item->{begin} < $item->{end}
+	or next;
       $img->line(x1=>$cx, y1=>$cy, x2=>$px, y2=>$py, color=>$outcolor);
       for (my $i = $item->{begin}; $i < $item->{end}; $i += PI/180) {
 	my $stroke_end = $i + PI/180;
