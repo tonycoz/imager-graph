@@ -28,7 +28,7 @@ use vars qw($VERSION);
 use Imager qw(:handy);
 use Imager::Fountain;
 
-$VERSION = '0.05';
+$VERSION = '0.06';
 
 # the maximum recursion depth in determining a color, fill or number
 use constant MAX_DEPTH => 10;

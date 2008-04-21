@@ -1,6 +1,6 @@
 Revision history for Perl extension Imager::Graph.
 
-Imager-Graph 0.06 - unreleased
+Imager-Graph 0.06 - 21 April 2008
 =================
 
  - Removed ancient Imager cruft from the documentation

@@ -13,8 +13,10 @@ t/t00load.t
 t/t10pie.t
 t/t91pod.t
 t/t93podcover.t
+testimg/t10_hlegend.png
 testimg/t10_lin_fount.png       Test output comparison images
 testimg/t10_mono.png
+testimg/t10_noother.png
 testimg/t10_pie1.png
 testimg/t10_pie2.png
 testimg/t10_rad_fount.png
