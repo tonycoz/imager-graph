@@ -380,7 +380,27 @@ the background fill for the legend.  Default: none
 the border color of the legend.  Default: none (no border is drawn
 around the legend.)
 
+=item orientation
+
+The orientation of the legend.  If this is C<vertical> the the patches
+and labels are stacked on top of each other.  If this is C<horizontal>
+the patchs and labels are word wrapped across the image.  Default:
+vertical.
+
 =back
+
+For example to create a horizontal legend with borderless patches,
+darker than the background, you might do:
+
+  my $im = $chart->draw
+    (...,
+    legend =>
+    {
+      patchborder => undef,
+      orientation => 'horizontal',
+      fill => { solid => Imager::Color->new(0, 0, 0, 32), }
+    },
+    ...);
 
 =item callout
 
@@ -528,8 +548,7 @@ Fills can be used for the graph background color, the background color
 for the legend block and for the fills used for each data element.
 
 You can specify a fill as a L<color value|Specifying colors> or as a
-general fill, see L<Imager::Fill> for details.  To use a general fill
-you need a version of Imager after 0.38.
+general fill, see L<Imager::Fill> for details.
 
 You don't need (or usually want) to call Imager::Fill::new yourself,
 since the various fill functions will call it for you, and
@@ -552,6 +571,9 @@ define the fountain fills xa, ya, xb and yb parameters.
 
 As with colors, you can use lookup(name) or lookup(name1.name2) to
 have one element to inherit the fill of another.
+
+Imager::Graph defaults the fill combine value to C<'normal'>.  This
+doesn't apply to simple color fills.
 
 =head2 Specifying numbers
 
@@ -722,7 +744,6 @@ my %styles =
     [
      { fountain=>'linear',
        xa_ratio=>0.13, ya_ratio=>0.13, xb_ratio=>0.87, yb_ratio=>0.87,
-       repeat=>'sawtooth',
        segments => Imager::Fountain->simple(positions=>[0, 1],
 					    colors=>[ NC('FFC0C0'), NC('FF0000') ]),
      },
@@ -926,7 +947,7 @@ Recursively looks up I<newname> in the style.
 
 =item scale(value1,value2)
 
-Each value can be a number or a name.  Names are recursively looks up
+Each value can be a number or a name.  Names are recursively looked up
 in the style and the product is returned.
 
 =back
@@ -1056,8 +1077,9 @@ sub _translate_fill {
     }
     else {
       # a general fill
+      # default to normal combine mode
+      my %work = ( combine => 'normal', %$what );
       if ($what->{hatch}) {
-	my %work = %$what;
 	if (!$work{fg}) {
 	  $work{fg} = $self->_get_color('fg')
 	    or return;
@@ -1069,7 +1091,6 @@ sub _translate_fill {
 	return ( fill=>\%work );
       }
       elsif ($what->{fountain}) {
-	my %work = %$what;
 	for my $key (qw(xa ya xb yb)) {
 	  if (exists $work{"${key}_ratio"}) {
 	    if ($key =~ /^x/) {
@@ -1085,7 +1106,7 @@ sub _translate_fill {
 	return ( fill=>\%work );
       }
       else {
-	return ( fill=> $what );
+	return ( fill=> \%work );
       }
     }
   }
@@ -1287,6 +1308,123 @@ sub _remove_box {
 sub _draw_legend {
   my ($self, $img, $labels, $chart_box) = @_;
 
+  my $orient = $self->_get_thing('legend.orientation');
+  defined $orient or $orient = 'vertical';
+
+  if ($orient eq 'vertical') {
+    return $self->_draw_legend_vertical($img, $labels, $chart_box);
+  }
+  elsif ($orient eq 'horizontal') {
+    return $self->_draw_legend_horizontal($img, $labels, $chart_box);
+  }
+  else {
+    return $self->_error("Unknown legend.orientation $orient");
+  }
+}
+
+sub _draw_legend_horizontal {
+  my ($self, $img, $labels, $chart_box) = @_;
+
+  defined(my $padding = $self->_get_integer('legend.padding'))
+    or return;
+  my $patchsize = $self->_get_integer('legend.patchsize')
+    or return;
+  defined(my $gap = $self->_get_integer('legend.patchgap'))
+    or return;
+
+  my $minrowsize = $patchsize + $gap;
+  my ($width, $height) = (0,0);
+  my $row_height = $minrowsize;
+  my $pos = 0;
+  my @sizes;
+  my @offsets;
+  for my $label (@$labels) {
+    my @text_box = $self->_text_bbox($label, 'legend');
+    push(@sizes, \@text_box);
+    my $entry_width = $patchsize + $gap + $text_box[2];
+    if ($pos == 0) {
+      # never re-wrap the first entry
+      push @offsets, [ 0, $height ];
+    }
+    else {
+      if ($pos + $gap + $entry_width > $chart_box->[2]) {
+	$pos = 0;
+	$height += $row_height;
+      }
+      push @offsets, [ $pos, $height ];
+    }
+    my $entry_right = $pos + $entry_width;
+    $pos += $gap + $entry_width;
+    $entry_right > $width and $width = $entry_right;
+    if ($text_box[3] > $row_height) {
+      $row_height = $text_box[3];
+    }
+  }
+  $height += $row_height;
+  my @box = ( 0, 0, $width + $padding * 2, $height + $padding * 2 );
+  my $outsidepadding = 0;
+  if ($self->{_style}{legend}{border}) {
+    defined($outsidepadding = $self->_get_integer('legend.outsidepadding'))
+      or return;
+    $box[2] += 2 * $outsidepadding;
+    $box[3] += 2 * $outsidepadding;
+  }
+  $self->_align_box(\@box, $chart_box, 'legend')
+    or return;
+  if ($self->{_style}{legend}{fill}) {
+    $img->box(xmin=>$box[0]+$outsidepadding, 
+              ymin=>$box[1]+$outsidepadding, 
+              xmax=>$box[2]-$outsidepadding, 
+              ymax=>$box[3]-$outsidepadding,
+	     $self->_get_fill('legend.fill', \@box));
+  }
+  $box[0] += $outsidepadding;
+  $box[1] += $outsidepadding;
+  $box[2] -= $outsidepadding;
+  $box[3] -= $outsidepadding;
+  my %text_info = $self->_text_style('legend')
+    or return;
+  my $patchborder;
+  if ($self->{_style}{legend}{patchborder}) {
+    $patchborder = $self->_get_color('legend.patchborder')
+      or return;
+  }
+  
+  my $dataindex = 0;
+  for my $label (@$labels) {
+    my ($left, $top) = @{$offsets[$dataindex]};
+    $left += $box[0] + $padding;
+    $top += $box[1] + $padding;
+    my $textpos = $left + $patchsize + $gap;
+    my @patchbox = ( $left, $top,
+                     $left + $patchsize, $top + $patchsize );
+    my @fill = $self->_data_fill($dataindex, \@patchbox)
+      or return;
+    $img->box(xmin=>$left, ymin=>$top, xmax=>$left + $patchsize,
+	       ymax=>$top + $patchsize, @fill);
+    if ($self->{_style}{legend}{patchborder}) {
+      $img->box(xmin=>$left, ymin=>$top, xmax=>$left + $patchsize,
+		ymax=>$top + $patchsize,
+		color=>$patchborder);
+    }
+    $img->string(%text_info, x=>$textpos, 'y'=>$top + $patchsize, 
+                 text=>$label);
+
+    ++$dataindex;
+  }
+  if ($self->{_style}{legend}{border}) {
+    my $border_color = $self->_get_color('legend.border')
+      or return;
+    $img->box(xmin=>$box[0], ymin=>$box[1], xmax=>$box[2], ymax=>$box[3],
+	      color=>$border_color);
+  }
+  $self->_remove_box($chart_box, \@box);
+  1;
+}
+
+sub _draw_legend_vertical {
+  my ($self, $img, $labels, $chart_box) = @_;
+
   defined(my $padding = $self->_get_integer('legend.padding'))
     or return;
   my $patchsize = $self->_get_integer('legend.patchsize')
@@ -1312,7 +1450,7 @@ sub _draw_legend {
 	     $height + $padding * 2 - $gap);
   my $outsidepadding = 0;
   if ($self->{_style}{legend}{border}) {
-    defined($outsidepadding = $self->_get_number('legend.outsidepadding'))
+    defined($outsidepadding = $self->_get_integer('legend.outsidepadding'))
       or return;
     $box[2] += 2 * $outsidepadding;
     $box[3] += 2 * $outsidepadding;
