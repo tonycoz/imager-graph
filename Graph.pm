@@ -657,7 +657,7 @@ my %style_defs =
              pconlyformat  => sub { sprintf "%.1f%%", $_[0] },
 	     },
    dropshadow => {
-                  fill    => '404040',
+                  fill    => { solid => Imager::Color->new(0, 0, 0, 96) },
                   off     => 'scale(0.4,text.size)',
                   offx    => 'lookup(dropshadow.off)',
                   offy    => 'lookup(dropshadow.off)',

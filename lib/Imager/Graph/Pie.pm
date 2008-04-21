@@ -87,6 +87,59 @@ the pie is given a drop shadow.
 
 =back
 
+=head1 PIE CHART STYLES
+
+The following style values are specific to pie charts:
+
+Controlling callouts, the C<callout> option:
+
+=over
+
+=item *
+
+color - the color of the callout line and the callout text.
+
+=item *
+
+font, size - font and size of the callout text
+
+=item *
+
+outside - the distance the radial callout line goes outside the pie
+
+=item *
+
+leadlen - the length of the horizontal callout line from the end of
+the radial line.
+
+=item *
+
+gap - the distance between the end of the horizontal callout line and
+the label.
+
+=item *
+
+inside - the length of the radial callout line within the pie.
+
+=back
+
+The outline, line option controls the color of the pie segment
+outlines, if enabled with the C<outline> feature.
+
+Under C<pie>:
+
+=over
+
+=item *
+
+maxsegment - any segment below this fraction of the total of the
+segments will be put into the "others" segment.  Default: 0.01
+
+=back
+
+The top level C<otherlabel> setting controls the label for the
+"others" segment, default "(others)".
+
 =head1 EXAMPLES
 
 Assuming:
@@ -481,16 +534,11 @@ sub _style_defs {
 
   my %work = %{$self->SUPER::_style_defs()};
   $work{otherlabel} = "(others)";
-  $work{features}{pieblur} = 1;
   $work{pie} = 
     {
-     blur => { 
-              type=>'conv',
-              coef=>[0.05, 0.1, 0.3, 1, 0.3, 0.1, 0.05]
-             },
      guessfactor=>0.6,
      size=>0.8,
-     maxsegment=> 0.05,
+     maxsegment=> 0.01,
     };
 
   \%work;

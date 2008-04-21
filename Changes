@@ -21,6 +21,15 @@ Imager-Graph 0.06 - unreleased
  - round the pie radius down to avoid running over the edge of the
    image
 
+ - changed the pie maxsegments default to 0.01 from 0.05
+
+ - removed the obsolete pie blur style information
+
+ - documented some of the pie chart specific style settings
+
+ - changed the default drop shadow style to a translucent fill so the
+   background can show through.
+
 Imager-Graph 0.05 - 17 December 2007
 =================
 
