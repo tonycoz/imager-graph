@@ -252,7 +252,7 @@ sub draw {
     int($self->_small_extent(\@chart_box) * $style->{pie}{size} * 0.5);
   my $max_width = $chart_box[2] - $chart_box[0] + $ebox[0] - $ebox[2];
   if ($radius > $max_width / 2) {
-    $radius = $max_width / 2;
+    $radius = int($max_width / 2);
   }
   $chart_box[0] -= $ebox[0];
   $chart_box[2] -= $ebox[2];

@@ -18,6 +18,9 @@ Imager-Graph 0.06 - unreleased
    drawing zero sized segments.
    https://rt.cpan.org/Ticket/Display.html?id=34813
 
+ - round the pie radius down to avoid running over the edge of the
+   image
+
 Imager-Graph 0.05 - 17 December 2007
 =================
 
