@@ -10,6 +10,10 @@ Imager-Graph 0.06 - unreleased
 
  - add horizontal legend boxes
 
+ - add a new style "primary" which is primary_red with a light grey
+   background, and made that the default, so the default graphs aren't
+   quite so ugly.
+
 Imager-Graph 0.05 - 17 December 2007
 =================
 

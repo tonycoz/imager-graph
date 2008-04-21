@@ -51,7 +51,7 @@ my $img2 = $pie->draw(data=>\@data,
 		      title=>{ text=>'Imager::Graph::Pie', size=>36 },
 		      features=>{ labelspconly=>1, _debugblur=>1,
                                   legend=>1 },
-                      legend=>{ border=>'000000', fill=>'FF8080', },
+                      legend=>{ border=>'000000', fill=>'C0C0C0', },
                       fills=>[ qw(404040 606060 808080 A0A0A0 C0C0C0 E0E0E0) ],
 		     );
 

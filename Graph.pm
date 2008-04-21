@@ -88,15 +88,22 @@ The currently defined styles are:
 
 =over
 
+=item primary
+
+a light grey background with no outlines.  Uses primary colors for the
+data fills.
+
+This is the default style.
+
 =item primary_red
 
 a light red background with no outlines.  Uses primary colors for the
-data fills.  This style is compatible with all versions of Imager.
+data fills.
 
 Graphs drawn using this style should save well as a gif, even though
 some graphs may perform a slight blur.
 
-This is the default style.
+This was the default style, but the red was too loud.
 
 =item mono
 
@@ -112,8 +119,6 @@ else will be drawn in red.  Another use might be to set a transparent
 background, by supplying C<<bg=>'00000000', channels=>4>>.
 
 This style outlines the legend if present and outlines the hashed fills.
-
-This and following styles require versions of Imager after 0.38.
 
 =item fount_lin
 
@@ -700,10 +705,23 @@ sub _style_defs {
   \%style_defs;
 }
 
-my $def_style = 'primary_red';
+my $def_style = 'primary';
 
 my %styles =
   (
+   primary =>
+   {
+    fills=>
+    [
+     qw(FF0000 00FF00 0000FF C0C000 00C0C0 FF00FF)
+    ],
+    fg=>'000000',
+    bg=>'E0E0E0',
+    legend=>
+    {
+     #patchborder=>'000000'
+    },
+   },
    primary_red =>
    {
     fills=>
