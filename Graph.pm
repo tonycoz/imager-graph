@@ -9,7 +9,7 @@ Imager::Graph - Perl extension for producing Graphs using the Imager library.
 
   use Imager::Graph::SubClass;
   my $chart = Imager::Graph::SubClass->new;
-  my $img = $chart->draw(data=>..., ...)
+  my $img = $chart->draw(data=> \@data, ...)
     or die $chart->error;
 
 =head1 DESCRIPTION
@@ -24,6 +24,7 @@ method.
 =cut
 
 use strict;
+use warnings;
 use vars qw($VERSION);
 use Imager qw(:handy);
 use Imager::Fountain;
@@ -70,10 +71,16 @@ the value can be a hashref containing sub values.
 The C<style> parameter will selects a basic color set, and possibly
 sets other related parameters.  See L</"STYLES">.
 
-  my $img = $graph->draw(data=>\@data,
-                         title=>{ text=>"Hello, World!",
-                                  size=>36,
-                                  color=>'FF0000' });
+ my $font = Imager::Font->new(file => 'ImUgly.ttf');
+ my $img = $chart->draw(
+                 data    => \@data,
+                 font    => $font,
+                 title   => {
+                                 text  => "Hello, World!",
+                                 size  => 36,
+                                 color => 'FF0000'
+                            }
+                 );
 
 When referring to a single sub-value this documentation will refer to
 'title.color' rather than 'the color element of title'.
@@ -92,8 +99,6 @@ The currently defined styles are:
 
 a light grey background with no outlines.  Uses primary colors for the
 data fills.
-
-This is the default style.
 
 =item primary_red
 
@@ -127,6 +132,8 @@ background and data fills, and adds a drop shadow.
 
 You can override the value used for text and outlines by setting the
 C<fg> parameter.
+
+This is the default style.
 
 =item fount_rad
 
@@ -705,7 +712,8 @@ sub _style_defs {
   \%style_defs;
 }
 
-my $def_style = 'primary';
+# Let's make the default something that looks really good, so folks will be interested enough to customize the style.
+my $def_style = 'fount_lin';
 
 my %styles =
   (
@@ -1186,11 +1194,9 @@ fill.
 
 sub _make_img {
   my ($self) = @_;
-  
-  my ($width, $height) = (256, 256);
 
-  $width = $self->_get_number('width');
-  $height = $self->_get_number('height');
+  my $width = $self->_get_number('width') || 256;
+  my $height = $self->_get_number('height') || 256;
   my $channels = $self->{_style}{channels};
 
   $channels ||= 3;
@@ -1236,6 +1242,9 @@ sub _text_bbox {
 
   my %text_info = $self->_text_style($name);
 
+  if (!defined $text_info{font}) {
+    die "No font or invalid font specified, and we're trying to draw text.\n";
+  }
   my @bbox = $text_info{font}->bounding_box(%text_info, string=>$text,
 					    canon=>1);
 

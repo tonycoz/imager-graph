@@ -10,9 +10,9 @@ package Imager::Graph::Pie;
 
   my $chart = Imager::Graph::Pie->new;
   # see Imager::Graph for options
-  my $img = $chart->draw(labels=>['first segment', 'second segment'],
-			 data=>[ $first_amount, $second_amount ],
-			 size=>[$width, $height])
+  my $img = $chart->draw(
+			 data => [ $first_amount, $second_amount ],
+			 size => 350);
 
 =head1 DESCRIPTION
 
@@ -39,7 +39,7 @@ use constant PI => 3.1415926535;
 
 Draws a pie graph onto a new image and returns the image.
 
-You must at least supply a C<data> parameter and should probably supply a C<labels> parameter.
+You must at least supply a C<data> parameter and should probably supply a C<labels> parameter.  If you supply a C<labels> parameter, you must supply a C<font> parameter.
 
 The C<data> parameter should be a reference to an array containing the
 data the pie graph should present.
