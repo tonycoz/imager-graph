@@ -687,6 +687,14 @@ Sets the error field of the object and returns an empty list or undef,
 depending on context.  Should be used for error handling, since it may
 provide some user hooks at some point.
 
+The intended usage is:
+
+  some action
+    or return $self->_error("error description");
+
+You should almost always return the result of _error() or return
+immediately afterwards.
+
 =cut
 
 sub _error {
@@ -932,6 +940,8 @@ Retrieve some general 'thing'.
 
 Supports the 'lookup(foo)' mechanism.
 
+Returns an empty list on failure.
+
 =cut
 
 sub _get_thing {
@@ -1033,6 +1043,8 @@ sub _get_number {
 Retrieves an integer from the style.  This is a simple wrapper around
 _get_number() that rounds the result to an integer.
 
+Returns an empty list on failure.
+
 =cut
 
 sub _get_integer {
@@ -1051,6 +1063,8 @@ Returns a color object of the given name from the style hash.
 Uses Imager::Color->new to translate normal scalars into color objects.
 
 Allows the lookup(name) mechanism.
+
+Returns an empty list on failure.
 
 =cut
 
@@ -1091,6 +1105,8 @@ the 'lookup(name)' mechanism.
 
 This function does the fg and bg initialization for hatched fills, and
 translation of *_ratio for fountain fills (using the $box parameter).
+
+Returns an empty list on failure.
 
 =cut
 
@@ -1208,6 +1224,15 @@ sub _make_img {
   $img;
 }
 
+=item _text_style($name)
+
+Returns parameters suitable for calls to Imager::Font's bounding_box()
+and draw() methods intended for use in defining text styles.
+
+Returns an empty list on failure.
+
+=cut
+
 sub _text_style {
   my ($self, $name) = @_;
 
@@ -1236,6 +1261,14 @@ sub _text_style {
 
   %work;
 }
+
+=item _text_bbox($text, $name)
+
+Returns a bounding box for the specified $text as styled by $name.
+
+Returns an empty list on failure.
+
+=cut
 
 sub _text_bbox {
   my ($self, $text, $name) = @_;
