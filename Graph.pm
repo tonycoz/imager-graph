@@ -24,7 +24,6 @@ method.
 =cut
 
 use strict;
-use warnings;
 use vars qw($VERSION);
 use Imager qw(:handy);
 use Imager::Fountain;
