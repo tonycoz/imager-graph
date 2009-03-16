@@ -542,11 +542,11 @@ relationships between the colors of various elements, for example the
 default style information contains:
 
    text=>{
-	  color=>'lookup(fg)',
+          color=>'lookup(fg)',
           ...
          },
    legend =>{
-	     color=>'lookup(text.color)',
+             color=>'lookup(text.color)',
              ...
             },
 
@@ -619,49 +619,49 @@ my %style_defs =
    back=> 'lookup(bg)',
    line=> 'lookup(fg)',
    text=>{
-	  color => 'lookup(fg)',
+          color => 'lookup(fg)',
           font  => 'lookup(font)',
-	  size  => 14,
-	 },
+          size  => 14,
+         },
    title=>{ 
-	   color  => 'lookup(text.color)', 
+           color  => 'lookup(text.color)', 
            font   => 'lookup(text.font)',
-	   halign => 'center', 
-	   valign => 'top',
-	   size   => 'scale(text.size,2.0)',
-	  },
+           halign => 'center', 
+           valign => 'top',
+           size   => 'scale(text.size,2.0)',
+          },
    legend =>{
-	     color          => 'lookup(text.color)',
+             color          => 'lookup(text.color)',
              font           => 'lookup(text.font)',
-	     size           => 'lookup(text.size)',
-	     patchsize      => 'scale(legend.size,0.9)',
-	     patchgap       => 'scale(legend.patchsize,0.3)',
-	     patchborder    => 'lookup(line)',
-	     halign         => 'right',
-	     valign         => 'top',
-	     padding        => 'scale(legend.size,0.3)',
-	     outsidepadding => 'scale(legend.padding,0.4)',
-	    },
+             size           => 'lookup(text.size)',
+             patchsize      => 'scale(legend.size,0.9)',
+             patchgap       => 'scale(legend.patchsize,0.3)',
+             patchborder    => 'lookup(line)',
+             halign         => 'right',
+             valign         => 'top',
+             padding        => 'scale(legend.size,0.3)',
+             outsidepadding => 'scale(legend.padding,0.4)',
+            },
    callout => {
-	       color	=> 'lookup(text.color)',
+               color    => 'lookup(text.color)',
                font     => 'lookup(text.font)',
-	       size	=> 'lookup(text.size)',
-	       line	=> 'lookup(line)',
-	       inside	=> 'lookup(callout.size)',
-	       outside	=> 'lookup(callout.size)',
-	       leadlen	=> 'scale(0.8,callout.size)',
-	       gap	=> 'scale(callout.size,0.3)',
-	      },
+               size     => 'lookup(text.size)',
+               line     => 'lookup(line)',
+               inside   => 'lookup(callout.size)',
+               outside  => 'lookup(callout.size)',
+               leadlen  => 'scale(0.8,callout.size)',
+               gap      => 'scale(callout.size,0.3)',
+              },
    label => {
              font          => 'lookup(text.font)',
-	     size          => 'lookup(text.size)',
-	     color         => 'lookup(text.color)',
+             size          => 'lookup(text.size)',
+             color         => 'lookup(text.color)',
              hpad          => 'lookup(label.pad)',
              vpad          => 'lookup(label.pad)',
              pad           => 'scale(label.size,0.2)',
              pcformat      => sub { sprintf "%s (%.0f%%)", $_[0], $_[1] },
              pconlyformat  => sub { sprintf "%.1f%%", $_[0] },
-	     },
+             },
    dropshadow => {
                   fill    => { solid => Imager::Color->new(0, 0, 0, 96) },
                   off     => 'scale(0.4,text.size)',
@@ -778,32 +778,32 @@ my %styles =
      { fountain=>'linear',
        xa_ratio=>0.13, ya_ratio=>0.13, xb_ratio=>0.87, yb_ratio=>0.87,
        segments => Imager::Fountain->simple(positions=>[0, 1],
-					    colors=>[ NC('FFC0C0'), NC('FF0000') ]),
+                                            colors=>[ NC('FFC0C0'), NC('FF0000') ]),
      },
      { fountain=>'linear',
        xa_ratio=>0, ya_ratio=>0, xb_ratio=>1.0, yb_ratio=>1.0,
        segments => Imager::Fountain->simple(positions=>[0, 1],
-					    colors=>[ NC('C0FFC0'), NC('00FF00') ]),
+                                            colors=>[ NC('C0FFC0'), NC('00FF00') ]),
      },
      { fountain=>'linear',
        xa_ratio=>0, ya_ratio=>0, xb_ratio=>1.0, yb_ratio=>1.0,
        segments => Imager::Fountain->simple(positions=>[0, 1],
-					    colors=>[ NC('C0C0FF'), NC('0000FF') ]),
+                                            colors=>[ NC('C0C0FF'), NC('0000FF') ]),
      },
      { fountain=>'linear',
        xa_ratio=>0, ya_ratio=>0, xb_ratio=>1.0, yb_ratio=>1.0,
        segments => Imager::Fountain->simple(positions=>[0, 1],
-					    colors=>[ NC('FFFFC0'), NC('FFFF00') ]),
+                                            colors=>[ NC('FFFFC0'), NC('FFFF00') ]),
      },
      { fountain=>'linear',
        xa_ratio=>0, ya_ratio=>0, xb_ratio=>1.0, yb_ratio=>1.0,
        segments => Imager::Fountain->simple(positions=>[0, 1],
-					    colors=>[ NC('C0FFFF'), NC('00FFFF') ]),
+                                            colors=>[ NC('C0FFFF'), NC('00FFFF') ]),
      },
      { fountain=>'linear',
        xa_ratio=>0, ya_ratio=>0, xb_ratio=>1.0, yb_ratio=>1.0,
        segments => Imager::Fountain->simple(positions=>[0, 1],
-					    colors=>[ NC('FFC0FF'), NC('FF00FF') ]),
+                                            colors=>[ NC('FFC0FF'), NC('FF00FF') ]),
      },
     ],
     back=>{ fountain=>'linear',
@@ -823,32 +823,32 @@ my %styles =
      { fountain=>'radial',
        xa_ratio=>0.5, ya_ratio=>0.5, xb_ratio=>1.0, yb_ratio=>0.5,
        segments => Imager::Fountain->simple(positions=>[0, 1],
-					    colors=>[ NC('FF8080'), NC('FF0000') ]),
+                                            colors=>[ NC('FF8080'), NC('FF0000') ]),
      },
      { fountain=>'radial',
        xa_ratio=>0.5, ya_ratio=>0.5, xb_ratio=>1.0, yb_ratio=>0.5,
        segments => Imager::Fountain->simple(positions=>[0, 1],
-					    colors=>[ NC('80FF80'), NC('00FF00') ]),
+                                            colors=>[ NC('80FF80'), NC('00FF00') ]),
      },
      { fountain=>'radial',
        xa_ratio=>0.5, ya_ratio=>0.5, xb_ratio=>1.0, yb_ratio=>0.5,
        segments => Imager::Fountain->simple(positions=>[0, 1],
-					    colors=>[ NC('808080FF'), NC('0000FF') ]),
+                                            colors=>[ NC('808080FF'), NC('0000FF') ]),
      },
      { fountain=>'radial',
        xa_ratio=>0.5, ya_ratio=>0.5, xb_ratio=>1.0, yb_ratio=>0.5,
        segments => Imager::Fountain->simple(positions=>[0, 1],
-					    colors=>[ NC('FFFF80'), NC('FFFF00') ]),
+                                            colors=>[ NC('FFFF80'), NC('FFFF00') ]),
      },
      { fountain=>'radial',
        xa_ratio=>0.5, ya_ratio=>0.5, xb_ratio=>1.0, yb_ratio=>0.5,
        segments => Imager::Fountain->simple(positions=>[0, 1],
-					    colors=>[ NC('80FFFF'), NC('00FFFF') ]),
+                                            colors=>[ NC('80FFFF'), NC('00FFFF') ]),
      },
      { fountain=>'radial',
        xa_ratio=>0.5, ya_ratio=>0.5, xb_ratio=>1.0, yb_ratio=>0.5,
        segments => Imager::Fountain->simple(positions=>[0, 1],
-					    colors=>[ NC('FF80FF'), NC('FF00FF') ]),
+                                            colors=>[ NC('FF80FF'), NC('FF00FF') ]),
      },
     ],
     back=>{ fountain=>'linear',
@@ -897,7 +897,7 @@ sub _style_setup {
         }
       }
       else {
-	$work{$key} = $src->{$key};
+        $work{$key} = $src->{$key};
       }
     }
   }
@@ -1011,23 +1011,23 @@ sub _get_number {
   else {
     if ($what =~ /^lookup\(([\w.]+)\)$/) {
       @depth < MAX_DEPTH
-	or return $self->_error("too many levels of recursion in lookup (@depth)");
+        or return $self->_error("too many levels of recursion in lookup (@depth)");
       return $self->_get_number($1, @depth);
     }
     elsif ($what =~ /^scale\(
-	            ((?:[a-z][\w.]*)|$NUM_RE)
+                    ((?:[a-z][\w.]*)|$NUM_RE)
                     ,
-	            ((?:[a-z][\w.]*)|$NUM_RE)\)$/x) {
+                    ((?:[a-z][\w.]*)|$NUM_RE)\)$/x) {
       my ($left, $right) = ($1, $2);
       unless ($left =~ /^$NUM_RE$/) {
-	@depth < MAX_DEPTH 
-	  or return $self->_error("too many levels of recursion in scale (@depth)");
-	$left = $self->_get_number($left, @depth);
+        @depth < MAX_DEPTH 
+          or return $self->_error("too many levels of recursion in scale (@depth)");
+        $left = $self->_get_number($left, @depth);
       }
       unless ($right =~ /^$NUM_RE$/) {
-	@depth < MAX_DEPTH 
-	  or return $self->_error("too many levels of recursion in scale (@depth)");
-	$right = $self->_get_number($right, @depth);
+        @depth < MAX_DEPTH 
+          or return $self->_error("too many levels of recursion in scale (@depth)");
+        $right = $self->_get_number($right, @depth);
       }
       return $left * $right;
     }
@@ -1085,7 +1085,7 @@ sub _get_color {
   unless (ref $what) {
     if ($what =~ /^lookup\((\w+(?:\.\w+)?)\)$/) {
       @depth < MAX_DEPTH or
-	return $self->_error("too many levels of recursion in lookup (@depth)");
+        return $self->_error("too many levels of recursion in lookup (@depth)");
 
       return $self->_get_color($1, @depth);
     }
@@ -1121,33 +1121,33 @@ sub _translate_fill {
       # default to normal combine mode
       my %work = ( combine => 'normal', %$what );
       if ($what->{hatch}) {
-	if (!$work{fg}) {
-	  $work{fg} = $self->_get_color('fg')
-	    or return;
-	}
-	if (!$work{bg}) {
-	  $work{bg} = $self->_get_color('bg')
-	    or return;
-	}
-	return ( fill=>\%work );
+        if (!$work{fg}) {
+          $work{fg} = $self->_get_color('fg')
+            or return;
+        }
+        if (!$work{bg}) {
+          $work{bg} = $self->_get_color('bg')
+            or return;
+        }
+        return ( fill=>\%work );
       }
       elsif ($what->{fountain}) {
-	for my $key (qw(xa ya xb yb)) {
-	  if (exists $work{"${key}_ratio"}) {
-	    if ($key =~ /^x/) {
-	      $work{$key} = $box->[0] + $work{"${key}_ratio"} 
-		* ($box->[2] - $box->[0]);
-	    }
-	    else {
-	      $work{$key} = $box->[1] + $work{"${key}_ratio"} 
-		* ($box->[3] - $box->[1]);
-	    }
-	  }
-	}
-	return ( fill=>\%work );
+        for my $key (qw(xa ya xb yb)) {
+          if (exists $work{"${key}_ratio"}) {
+            if ($key =~ /^x/) {
+              $work{$key} = $box->[0] + $work{"${key}_ratio"} 
+                * ($box->[2] - $box->[0]);
+            }
+            else {
+              $work{$key} = $box->[1] + $work{"${key}_ratio"} 
+                * ($box->[3] - $box->[1]);
+            }
+          }
+        }
+        return ( fill=>\%work );
       }
       else {
-	return ( fill=> \%work );
+        return ( fill=> \%work );
       }
     }
   }
@@ -1276,7 +1276,7 @@ sub _text_bbox {
     or return;
 
   my @bbox = $text_info{font}->bounding_box(%text_info, string=>$text,
-					    canon=>1);
+                                            canon=>1);
 
   return @bbox[0..3];
 }
@@ -1344,7 +1344,7 @@ sub _remove_box {
 
   if ($areay < $areax) {
     if ($object_box->[1] - $chart_box->[1] 
-	< $chart_box->[3] - $object_box->[3]) {
+        < $chart_box->[3] - $object_box->[3]) {
       $chart_box->[1] = $object_box->[3];
     }
     else {
@@ -1353,7 +1353,7 @@ sub _remove_box {
   }
   else {
     if ($object_box->[0] - $chart_box->[0] 
-	< $chart_box->[2] - $object_box->[2]) {
+        < $chart_box->[2] - $object_box->[2]) {
       $chart_box->[0] = $object_box->[2];
     }
     else {
@@ -1406,8 +1406,8 @@ sub _draw_legend_horizontal {
     }
     else {
       if ($pos + $gap + $entry_width > $chart_box->[2]) {
-	$pos = 0;
-	$height += $row_height;
+        $pos = 0;
+        $height += $row_height;
       }
       push @offsets, [ $pos, $height ];
     }
@@ -1434,7 +1434,7 @@ sub _draw_legend_horizontal {
               ymin=>$box[1]+$outsidepadding, 
               xmax=>$box[2]-$outsidepadding, 
               ymax=>$box[3]-$outsidepadding,
-	     $self->_get_fill('legend.fill', \@box));
+             $self->_get_fill('legend.fill', \@box));
   }
   $box[0] += $outsidepadding;
   $box[1] += $outsidepadding;
@@ -1459,11 +1459,11 @@ sub _draw_legend_horizontal {
     my @fill = $self->_data_fill($dataindex, \@patchbox)
       or return;
     $img->box(xmin=>$left, ymin=>$top, xmax=>$left + $patchsize,
-	       ymax=>$top + $patchsize, @fill);
+               ymax=>$top + $patchsize, @fill);
     if ($self->{_style}{legend}{patchborder}) {
       $img->box(xmin=>$left, ymin=>$top, xmax=>$left + $patchsize,
-		ymax=>$top + $patchsize,
-		color=>$patchborder);
+                ymax=>$top + $patchsize,
+                color=>$patchborder);
     }
     $img->string(%text_info, x=>$textpos, 'y'=>$top + $patchsize, 
                  text=>$label);
@@ -1474,7 +1474,7 @@ sub _draw_legend_horizontal {
     my $border_color = $self->_get_color('legend.border')
       or return;
     $img->box(xmin=>$box[0], ymin=>$box[1], xmax=>$box[2], ymax=>$box[3],
-	      color=>$border_color);
+              color=>$border_color);
   }
   $self->_remove_box($chart_box, \@box);
   1;
@@ -1505,8 +1505,8 @@ sub _draw_legend_vertical {
     }
   }
   my @box = (0, 0, 
-	     $width + $patchsize + $padding * 2 + $gap,
-	     $height + $padding * 2 - $gap);
+             $width + $patchsize + $padding * 2 + $gap,
+             $height + $padding * 2 - $gap);
   my $outsidepadding = 0;
   if ($self->{_style}{legend}{border}) {
     defined($outsidepadding = $self->_get_integer('legend.outsidepadding'))
@@ -1521,7 +1521,7 @@ sub _draw_legend_vertical {
               ymin=>$box[1]+$outsidepadding, 
               xmax=>$box[2]-$outsidepadding, 
               ymax=>$box[3]-$outsidepadding,
-	     $self->_get_fill('legend.fill', \@box));
+             $self->_get_fill('legend.fill', \@box));
   }
   $box[0] += $outsidepadding;
   $box[1] += $outsidepadding;
@@ -1544,11 +1544,11 @@ sub _draw_legend_vertical {
     my @fill = $self->_data_fill($dataindex, \@patchbox)
       or return;
     $img->box(xmin=>$patchpos, ymin=>$ypos, xmax=>$patchpos + $patchsize,
-	       ymax=>$ypos + $patchsize, @fill);
+               ymax=>$ypos + $patchsize, @fill);
     if ($self->{_style}{legend}{patchborder}) {
       $img->box(xmin=>$patchpos, ymin=>$ypos, xmax=>$patchpos + $patchsize,
-		ymax=>$ypos + $patchsize,
-		color=>$patchborder);
+                ymax=>$ypos + $patchsize,
+                color=>$patchborder);
     }
     $img->string(%text_info, x=>$textpos, 'y'=>$ypos + $patchsize, 
                  text=>$label);
@@ -1566,7 +1566,7 @@ sub _draw_legend_vertical {
     my $border_color = $self->_get_color('legend.border')
       or return;
     $img->box(xmin=>$box[0], ymin=>$box[1], xmax=>$box[2], ymax=>$box[3],
-	      color=>$border_color);
+              color=>$border_color);
   }
   $self->_remove_box($chart_box, \@box);
   1;

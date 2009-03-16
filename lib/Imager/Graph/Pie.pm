@@ -11,8 +11,8 @@ package Imager::Graph::Pie;
   my $chart = Imager::Graph::Pie->new;
   # see Imager::Graph for options
   my $img = $chart->draw(
-			 data => [ $first_amount, $second_amount ],
-			 size => 350);
+                         data => [ $first_amount, $second_amount ],
+                         size => 350);
 
 =head1 DESCRIPTION
 
@@ -179,13 +179,11 @@ and a title, but move the legend down, and add a dropshadow:
 
 something a bit prettier:
 
-  # requires Imager > 0.38
   $img = $pie->draw(data=>\@data, labels=>\@labels,
                     style=>'fount_lin', features=>'legend');
 
 suitable for monochrome output:
 
-  # requires Imager > 0.38
   $img = $pie->draw(data=>\@data, labels=>\@labels,
                     style=>'mono', features=>'legend');
 
@@ -197,9 +195,25 @@ sub draw {
 
   $opts{data} 
     or return $self->_error("No data parameter supplied");
-  my @data = @{$opts{data}};
+  my @data = @{$opts{data}}
+    or return $self->_error("No values in the data parameter");
   my @labels;
   @labels = @{$opts{labels}} if $opts{labels};
+
+  my $total = 0;
+  {
+    my $index = 0;
+    for my $item (@data) {
+      $item < 0
+        and return $self->_error("Data index $index is less than zero");
+      
+      $total += $item;
+      
+      ++$index;
+    }
+  }
+  $total == 0
+    and return $self->_error("Sum of all data values is zero");
 
   $self->_style_setup(\%opts);
 
@@ -207,11 +221,6 @@ sub draw {
 
   my $img = $self->_make_img()
     or return;
-
-  my $total = 0;
-  for my $item (@data) {
-    $total += $item;
-  }
 
   my @chart_box = ( 0, 0, $img->getwidth-1, $img->getheight-1 );
   if ($style->{title}{text}) {
@@ -272,33 +281,35 @@ sub draw {
       elsif ($style->{features}{labels}) {
         $item->{label} = 1;
       }
-      my @lbox = $self->_text_bbox($item->{text}, 'label')
-	or return;
-      $item->{lbox} = \@lbox;
-      if ($item->{label}) {
-        unless ($self->_fit_text(0, 0, 'label', $item->{text}, $guessradius,
-                                 $item->{begin}, $item->{end})) {
-          $item->{callout} = 1;
+      $item->{callout} = 1 if $style->{features}{allcallouts};
+      if (!$item->{callout}) {
+        my @lbox = $self->_text_bbox($item->{text}, 'label')
+          or return;
+        $item->{lbox} = \@lbox;
+        if ($item->{label}) {
+          unless ($self->_fit_text(0, 0, 'label', $item->{text}, $guessradius,
+                                   $item->{begin}, $item->{end})) {
+            $item->{callout} = 1;
+          }
         }
       }
-      $item->{callout} = 1 if $style->{features}{allcallouts};
       if ($item->{callout}) {
         $item->{label} = 0;
-	my @cbox = $self->_text_bbox($item->{text}, 'callout')
-	  or return;
-	$item->{cbox} = \@cbox;
-	$item->{cangle} = ($item->{begin} + $item->{end}) / 2;
-	my $dist = cos($item->{cangle}) * ($guessradius+
+        my @cbox = $self->_text_bbox($item->{text}, 'callout')
+          or return;
+        $item->{cbox} = \@cbox;
+        $item->{cangle} = ($item->{begin} + $item->{end}) / 2;
+        my $dist = cos($item->{cangle}) * ($guessradius+
                                            $callout_outside);
-	my $co_size = $callout_leadlen + $callout_gap + $item->{cbox}[2];
-	if ($dist < 0) {
-	  $dist -= $co_size - $guessradius;
-	  $dist < $ebox[0] and $ebox[0] = $dist;
-	}
-	else {
-	  $dist += $co_size - $guessradius;
-	  $dist > $ebox[2] and $ebox[2] = $dist;
-	}
+        my $co_size = $callout_leadlen + $callout_gap + $item->{cbox}[2];
+        if ($dist < 0) {
+          $dist -= $co_size - $guessradius;
+          $dist < $ebox[0] and $ebox[0] = $dist;
+        }
+        else {
+          $dist += $co_size - $guessradius;
+          $dist > $ebox[2] and $ebox[2] = $dist;
+        }
       }
     }
     push(@info, $item);
@@ -349,28 +360,32 @@ sub draw {
       my $px = int($cx + $radius * cos($item->{begin}));
       my $py = int($cy + $radius * sin($item->{begin}));
       $item->{begin} < $item->{end}
-	or next;
+        or next;
       $img->line(x1=>$cx, y1=>$cy, x2=>$px, y2=>$py, color=>$outcolor);
       for (my $i = $item->{begin}; $i < $item->{end}; $i += PI/180) {
-	my $stroke_end = $i + PI/180;
-	$stroke_end = $item->{end} if $stroke_end > $item->{end};
-	my $nx = int($cx + $radius * cos($stroke_end));
-	my $ny = int($cy + $radius * sin($stroke_end));
-	$img->line(x1=>$px, y1=>$py, x2=>$nx, y2=>$ny, color=>$outcolor,
-		  antialias=>1);
-	($px, $py) = ($nx, $ny);
+        my $stroke_end = $i + PI/180;
+        $stroke_end = $item->{end} if $stroke_end > $item->{end};
+        my $nx = int($cx + $radius * cos($stroke_end));
+        my $ny = int($cy + $radius * sin($stroke_end));
+        $img->line(x1=>$px, y1=>$py, x2=>$nx, y2=>$ny, color=>$outcolor,
+                  antialias=>1);
+        ($px, $py) = ($nx, $ny);
       }
     }
   }
 
   my $callout_inside = $radius - $self->_get_number('callout.inside');
   $callout_outside += $radius;
-  my %callout_text = $self->_text_style('callout')
-    or return;
-  my %label_text = $self->_text_style('label')
-    or return;
+  my %callout_text;
+  my %label_text;
   for my $label (@info) {
-    if ($label->{label}) {
+    if ($label->{label} && !$label->{callout}) {
+      # at this point we know we need the label font, to calculate
+      # whether the label will fit if anything else
+      unless (%label_text) {
+        %label_text = $self->_text_style('label')
+          or return;
+      }
       my @loc = $self->_fit_text($cx, $cy, 'label', $label->{text}, $radius,
                                  $label->{begin}, $label->{end});
       if (@loc) {
@@ -384,31 +399,35 @@ sub draw {
       }
       else {
         $label->{callout} = 1;
-	my @cbox = $self->_text_bbox($label->{text}, 'callout')
-	  or return;
+        my @cbox = $self->_text_bbox($label->{text}, 'callout')
+          or return;
         $label->{cbox} = \@cbox; 
         $label->{cangle} = ($label->{begin} + $label->{end}) / 2;
       }
     }
     if ($label->{callout}) {
+      unless (%callout_text) {
+        %callout_text = $self->_text_style('callout')
+          or return;
+      }
       my $ix = floor(0.5 + $cx + $callout_inside * cos($label->{cangle}));
       my $iy = floor(0.5 + $cy + $callout_inside * sin($label->{cangle}));
       my $ox = floor(0.5 + $cx + $callout_outside * cos($label->{cangle}));
       my $oy = floor(0.5 + $cy + $callout_outside * sin($label->{cangle}));
       my $lx = ($ox < $cx) ? $ox - $callout_leadlen : $ox + $callout_leadlen;
       $img->line(x1=>$ix, y1=>$iy, x2=>$ox, y2=>$oy, antialias=>1,
-		 color=>$self->_get_color('callout.color'));
+                 color=>$self->_get_color('callout.color'));
       $img->line(x1=>$ox, y1=>$oy, x2=>$lx, y2=>$oy, antialias=>1,
-		 color=>$self->_get_color('callout.color'));
+                 color=>$self->_get_color('callout.color'));
       #my $tx = $lx + $callout_gap;
       my $ty = $oy + $label->{cbox}[3]/2+$label->{cbox}[1];
       if ($lx < $cx) {
-	$img->string(%callout_text, x=>$lx-$callout_gap-$label->{cbox}[2], 
-		     'y'=>$ty, text=>$label->{text});
+        $img->string(%callout_text, x=>$lx-$callout_gap-$label->{cbox}[2], 
+                     'y'=>$ty, text=>$label->{text});
       }
       else {
-	$img->string(%callout_text, x=>$lx+$callout_gap, 'y'=>$ty, 
-		     text=>$label->{text});
+        $img->string(%callout_text, x=>$lx+$callout_gap, 'y'=>$ty, 
+                     text=>$label->{text});
       }
     }
   }
@@ -473,7 +492,8 @@ sub _fit_text {
   my ($self, $cx, $cy, $name, $text, $radius, $begin, $end) = @_;
 
   #print "fit: $cx, $cy '$text' $radius $begin $end\n";
-  my @tbox = $self->_text_bbox($text, $name);
+  my @tbox = $self->_text_bbox($text, $name)
+    or return;
   my $tcx = floor(0.5+$cx + cos(($begin+$end)/2) * $radius *3/5);
   my $tcy = floor(0.5+$cy + sin(($begin+$end)/2) * $radius *3/5);
   my $topy = $tcy - $tbox[3]/2;

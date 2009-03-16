@@ -21,7 +21,7 @@ my $font = Imager::Font::Test->new();
 my @data = ( 100, 180, 80, 20, 2, 1, 0.5 );
 my @labels = qw(alpha beta gamma delta epsilon phi gi);
 
-plan tests => 26;
+plan tests => 34;
 
 my $pie = Imager::Graph::Pie->new;
 ok($pie, "creating pie chart object");
@@ -166,20 +166,57 @@ cmpimg($img6, "testimg/t10_hlegend.png", 550_000);
   ok(!$im, "should fail to produce labelled graph with no font");
   like($pie->error, qr/label\.font/, "message should mention which font");
 
- SKIP: 
-  {
-    $font
-      or skip("No font to setup the callout font", 2);
-    $im = $pie->draw
-      (
-       data => \@data,
-       labels => \@labels,
-       features => [ 'allcallouts' ],
-       label => { font => $font },
-      );
-    ok(!$im, "should fail to produce callout labelled graph with no font");
-    like($pie->error, qr/callout\.font/, "message should mention which font");
-  }
+  $im = $pie->draw
+    (
+     data => \@data,
+     labels => \@labels,
+     features => [ 'allcallouts' ],
+     label => { font => $font },
+    );
+  ok(!$im, "should fail to produce callout labelled graph with no font");
+  like($pie->error, qr/callout\.font/, "message should mention which font");
+
+  # shouldn't need to set label font if doing all callouts
+  $im = $pie->draw
+    (
+     data => \@data,
+     labels => \@labels,
+     features => [ 'allcallouts' ],
+     callout => { font => $font },
+    );
+  ok($im, "should produce callout labelled graph with only callout font")
+    or print "# ", $pie->error, "\n";
+
+  # shouldn't need to set callout font if doing all labels
+  $im = $pie->draw
+    (
+     data => [ 1, 1, 1 ],
+     labels => [ qw/a b c/ ],
+     label => { font => $font }
+    );
+  ok($im, "should produce label only graph with only label font");
+}
+
+{
+  # draw with an empty data array is bad
+  # problem reported and fixed by Patrick Michaud
+  my $im = $pie->draw(data => []);
+  ok(!$im, "fail to draw with empty data");
+  like($pie->error, qr/No values/, "message appropriate");
+}
+
+{ # pie charts can't represent negative values
+  # problem reported and fixed by Patrick Michaud
+  my $im = $pie->draw(data => [ 10, -1, 10 ]);
+  ok(!$im, "fail to draw with negative value");
+  is($pie->error, "Data index 1 is less than zero", "check message");
+}
+
+{ # pie can't represent all zeros
+  # problem reported and fixed by Patrick Michaud
+  my $im = $pie->draw(data => [ 0, 0, 0 ]);
+  ok(!$im, "fail to draw with all zero values");
+  is($pie->error, "Sum of all data values is zero", "check message");
 }
 
 sub cmpimg {
