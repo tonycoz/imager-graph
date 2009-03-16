@@ -1220,10 +1220,10 @@ sub _text_style {
     %work = %{$self->{_style}{text}};
   }
   $work{font}
-      or return $self->_error("$name has no font parameter");
+    or return $self->_error("$name has no font parameter");
 
   $work{font} = $self->_get_thing("$name.font")
-    or return $self->_error("invalid font");
+    or return $self->_error("No $name.font defined, either set $name.font or font to a font");
   UNIVERSAL::isa($work{font}, "Imager::Font")
       or return $self->_error("$name.font is not a font");
   if ($work{color} && !ref $work{color}) {
@@ -1240,11 +1240,9 @@ sub _text_style {
 sub _text_bbox {
   my ($self, $text, $name) = @_;
 
-  my %text_info = $self->_text_style($name);
+  my %text_info = $self->_text_style($name)
+    or return;
 
-  if (!defined $text_info{font}) {
-    die "No font or invalid font specified, and we're trying to draw text.\n";
-  }
   my @bbox = $text_info{font}->bounding_box(%text_info, string=>$text,
 					    canon=>1);
 
@@ -1366,7 +1364,8 @@ sub _draw_legend_horizontal {
   my @sizes;
   my @offsets;
   for my $label (@$labels) {
-    my @text_box = $self->_text_bbox($label, 'legend');
+    my @text_box = $self->_text_bbox($label, 'legend')
+      or return;
     push(@sizes, \@text_box);
     my $entry_width = $patchsize + $gap + $text_box[2];
     if ($pos == 0) {
@@ -1462,7 +1461,8 @@ sub _draw_legend_vertical {
   my ($width, $height) = (0,0);
   my @sizes;
   for my $label (@$labels) {
-    my @box = $self->_text_bbox($label, 'legend');
+    my @box = $self->_text_bbox($label, 'legend')
+      or return;
     push(@sizes, \@box);
     $width = $box[2] if $box[2] > $width;
     if ($minrowsize > $box[3]) {
@@ -1544,11 +1544,13 @@ sub _draw_title {
   my ($self, $img, $chart_box) = @_;
 
   my $title = $self->{_style}{title}{text};
-  my @box = $self->_text_bbox($title, 'title');
+  my @box = $self->_text_bbox($title, 'title')
+    or return;
   my $yoff = $box[1];
   @box[0,1] = (0,0);
   $self->_align_box(\@box, $chart_box, 'title');
-  my %text_info = $self->_text_style('title');
+  my %text_info = $self->_text_style('title')
+    or return;
   $img->string(%text_info, x=>$box[0], 'y'=>$box[3] + $yoff, text=>$title);
   $self->_remove_box($chart_box, \@box);
   1;

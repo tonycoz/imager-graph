@@ -21,7 +21,7 @@ my $font = Imager::Font::Test->new();
 my @data = ( 100, 180, 80, 20, 2, 1, 0.5 );
 my @labels = qw(alpha beta gamma delta epsilon phi gi);
 
-plan tests => 16;
+plan tests => 26;
 
 my $pie = Imager::Graph::Pie->new;
 ok($pie, "creating pie chart object");
@@ -127,6 +127,59 @@ cmpimg($img6, "testimg/t10_hlegend.png", 550_000);
   ok($img->write(file => 'testout/t10_noother.ppm'),
      "save it");
   cmpimg($img, 'testimg/t10_noother.png', 500_000);
+}
+
+{ # RT #535
+  # no font parameter would crash
+  my $im = $pie->draw
+    (
+     data => \@data,
+     title => 'test',
+    );
+  ok(!$im, "should fail to produce titled graph with no font");
+  like($pie->error, qr/title\.font/, "message should mention which font");
+
+  $im = $pie->draw
+    (
+     labels => \@labels,
+     data => \@data,
+     features => [ 'legend' ],
+    );
+  ok(!$im, "should fail to produce legended graph with no font");
+  like($pie->error, qr/legend\.font/, "message should mention which font");
+
+  $im = $pie->draw
+    ( 
+     data => \@data,
+     labels => \@labels,
+     features => [ 'legend' ],
+     legend => { orientation => "horizontal" },
+    );
+  ok(!$im, "should fail to produce horizontal legended graph with no font");
+  like($pie->error, qr/legend\.font/, "message should mention which font");
+
+  $im = $pie->draw
+    (
+     data => \@data,
+     labels => \@labels,
+    );
+  ok(!$im, "should fail to produce labelled graph with no font");
+  like($pie->error, qr/label\.font/, "message should mention which font");
+
+ SKIP: 
+  {
+    $font
+      or skip("No font to setup the callout font", 2);
+    $im = $pie->draw
+      (
+       data => \@data,
+       labels => \@labels,
+       features => [ 'allcallouts' ],
+       label => { font => $font },
+      );
+    ok(!$im, "should fail to produce callout labelled graph with no font");
+    like($pie->error, qr/callout\.font/, "message should mention which font");
+  }
 }
 
 sub cmpimg {

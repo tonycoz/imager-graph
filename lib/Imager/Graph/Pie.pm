@@ -272,7 +272,9 @@ sub draw {
       elsif ($style->{features}{labels}) {
         $item->{label} = 1;
       }
-      $item->{lbox} = [ $self->_text_bbox($item->{text}, 'label') ];
+      my @lbox = $self->_text_bbox($item->{text}, 'label')
+	or return;
+      $item->{lbox} = \@lbox;
       if ($item->{label}) {
         unless ($self->_fit_text(0, 0, 'label', $item->{text}, $guessradius,
                                  $item->{begin}, $item->{end})) {
@@ -282,7 +284,9 @@ sub draw {
       $item->{callout} = 1 if $style->{features}{allcallouts};
       if ($item->{callout}) {
         $item->{label} = 0;
-	$item->{cbox} = [ $self->_text_bbox($item->{text}, 'callout') ];
+	my @cbox = $self->_text_bbox($item->{text}, 'callout')
+	  or return;
+	$item->{cbox} = \@cbox;
 	$item->{cangle} = ($item->{begin} + $item->{end}) / 2;
 	my $dist = cos($item->{cangle}) * ($guessradius+
                                            $callout_outside);
@@ -361,8 +365,10 @@ sub draw {
 
   my $callout_inside = $radius - $self->_get_number('callout.inside');
   $callout_outside += $radius;
-  my %callout_text = $self->_text_style('callout');
-  my %label_text = $self->_text_style('label');
+  my %callout_text = $self->_text_style('callout')
+    or return;
+  my %label_text = $self->_text_style('label')
+    or return;
   for my $label (@info) {
     if ($label->{label}) {
       my @loc = $self->_fit_text($cx, $cy, 'label', $label->{text}, $radius,
@@ -378,7 +384,9 @@ sub draw {
       }
       else {
         $label->{callout} = 1;
-        $label->{cbox} = [ $self->_text_bbox($label->{text}, 'callout') ]; 
+	my @cbox = $self->_text_bbox($label->{text}, 'callout')
+	  or return;
+        $label->{cbox} = \@cbox; 
         $label->{cangle} = ($label->{begin} + $label->{end}) / 2;
       }
     }
