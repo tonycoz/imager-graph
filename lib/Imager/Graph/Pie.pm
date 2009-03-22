@@ -193,27 +193,16 @@ suitable for monochrome output:
 sub draw {
   my ($self, %opts) = @_;
 
-  $opts{data} 
-    or return $self->_error("No data parameter supplied");
-  my @data = @{$opts{data}}
-    or return $self->_error("No values in the data parameter");
-  my @labels;
-  @labels = @{$opts{labels}} if $opts{labels};
+  $self->_processOptions(\%opts);
 
-  my $total = 0;
-  {
-    my $index = 0;
-    for my $item (@data) {
-      $item < 0
-        and return $self->_error("Data index $index is less than zero");
-      
-      $total += $item;
-      
-      ++$index;
-    }
+  if (!$self->_validInput()) {
+    return;
   }
-  $total == 0
-    and return $self->_error("Sum of all data values is zero");
+
+  my @data = @{$self->_getDataSeries()->[0]->{'data'}};
+
+  my @labels = @{$self->_getLabels() || []};
+
 
   $self->_style_setup(\%opts);
 
@@ -228,10 +217,15 @@ sub draw {
       or return;
   }
 
+  my $total = 0;
+  for my $item (@data) {
+    $total += $item;
+  }
+
   # consolidate any segments that are too small to display
   $self->_consolidate_segments(\@data, \@labels, $total);
 
-  if ($style->{features}{legend} && $opts{labels}) {
+  if ($style->{features}{legend} && (scalar @labels)) {
     $self->_draw_legend($img, \@labels, \@chart_box)
       or return;
   }
@@ -260,7 +254,7 @@ sub draw {
     $item->{begin} = $pos;
     $pos += $size;
     $item->{end} = $pos;
-    if ($opts{labels}) {
+    if (scalar @labels) {
       $item->{text} = $labels[$index];
     }
     if ($style->{features}{labelspconly}) {
@@ -433,6 +427,37 @@ sub draw {
   }
 
   $img;
+}
+
+sub _validInput {
+  my $self = shift;
+
+  if (!defined $self->_getDataSeries() || !scalar @{$self->_getDataSeries()}) {
+    return $self->_error("No data supplied");
+  }
+
+  if (!scalar @{$self->_getDataSeries()->[0]->{'data'}}) {
+    return $self->_error("No values in data series");
+  }
+
+  my @data = @{$self->_getDataSeries()->[0]->{'data'}};
+
+  my $total = 0;
+  {
+    my $index = 0;
+    for my $item (@data) {
+      $item < 0
+        and return $self->_error("Data index $index is less than zero");
+
+      $total += $item;
+
+      ++$index;
+    }
+  }
+  $total == 0
+    and return $self->_error("Sum of all data values is zero");
+
+  return 1;
 }
 
 =head1 INTERNAL FUNCTIONS

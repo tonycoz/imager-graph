@@ -45,6 +45,127 @@ sub new {
   bless {}, $_[0];
 }
 
+=item setGraphSize($size)
+
+Sets the size of the graph (in pixels) within the image.  The size of the image defaults to 1.5 * $graph_size.
+
+=cut
+
+sub setGraphSize {
+  $_[0]->{'graph_size'} = $_[1];
+}
+
+sub _getGraphSize {
+  return $_[0]->{'graph_size'};
+}
+
+=item setImageWidth($width)
+
+Sets the width of the image in pixels.
+
+=cut
+
+sub setImageWidth {
+  $_[0]->{'image_width'} = $_[1];
+}
+
+sub _getImageWidth {
+  return $_[0]->{'image_width'};
+}
+
+=item setImageHeight($height)
+
+Sets the height of the image in pixels.
+
+=cut
+
+sub setImageHeight {
+  $_[0]->{'image_height'} = $_[1];
+}
+
+sub _getImageHeight {
+  return $_[0]->{'image_height'};
+}
+
+=item addDataSeries([8, 6, 7, 5, 3, 0, 9], 'Series Name');
+
+Adds a data series to the graph.  For L<Imager::Graph::Pie>, only one data series can be added.
+
+=cut
+
+sub addDataSeries {
+  my $self = shift;
+  my $data_ref = shift;
+  my $series_name = shift;
+
+  my $graph_data = $self->{'graph_data'} || [];
+
+  push @$graph_data, { data => $data_ref, series_name => $series_name };
+
+  $self->{'graph_data'} = $graph_data;
+  return;
+}
+
+sub _getDataSeries {
+  return $_[0]->{'graph_data'};
+}
+
+=item setLabels(['label1', 'label2' ... ])
+
+Labels the specific data points.  For line/bar graphs, this is the x-axis.  For pie graphs, it is the label for the wedges.
+
+=cut
+
+sub setLabels {
+  $_[0]->{'labels'} = $_[1];
+}
+
+sub _getLabels {
+  return $_[0]->{'labels'}
+}
+
+=item setTitle($title)
+
+Sets the title of the graph.  Requires setting a font.
+
+=cut
+
+sub setTitle {
+  $_[0]->{'image_title'} = $_[1];
+}
+
+sub _getTitle {
+  return $_[0]->{'image_title'};
+}
+
+=item setFont(Imager::Font->new())
+
+Sets the font to use for text.  Takes an L<Imager::Font> object.
+
+=cut
+
+sub setFont {
+  $_[0]->{'font'} = $_[1];
+}
+
+sub _getFont {
+  return $_[0]->{'font'};
+}
+
+=item setStyle($style_name)
+
+Sets the style to be used for the graph.  Imager::Graph comes with several pre-defined styles: fount_lin (default), fount_rad, mono, primary_red, and primary.
+
+=cut
+
+sub setStyle {
+  $_[0]->{'style'} = $_[1];
+}
+
+sub _getStyle {
+  return $_[0]->{'style'};
+}
+
 =item error
 
 Returns an error message.  Only value if the draw() method returns false.
@@ -719,6 +840,24 @@ sub _style_defs {
   \%style_defs;
 }
 
+sub _processOptions {
+  my $self = shift;
+  my $opts = shift;
+
+  if ($opts->{'style'}) {
+    $self->setStyle($opts->{'style'});
+  }
+
+  if ($opts->{'data'}) {
+    $self->addDataSeries($opts->{'data'});
+  }
+  if ($opts->{'labels'}) {
+    $self->setLabels($opts->{'labels'});
+  }
+}
+
+
+
 # Let's make the default something that looks really good, so folks will be interested enough to customize the style.
 my $def_style = 'fount_lin';
 
@@ -806,6 +945,9 @@ my %styles =
                                             colors=>[ NC('FFC0FF'), NC('FF00FF') ]),
      },
     ],
+    colors  => [
+     qw(FF0000 00FF00 0000FF C0C000 00C0C0 FF00FF)
+    ],
     back=>{ fountain=>'linear',
             xa_ratio=>0, ya_ratio=>0,
             xb_ratio=>1.0, yb_ratio=>1.0,
@@ -851,6 +993,9 @@ my %styles =
                                             colors=>[ NC('FF80FF'), NC('FF00FF') ]),
      },
     ],
+    colors  => [
+     qw(FF0000 00FF00 0000FF C0C000 00C0C0 FF00FF)
+    ],
     back=>{ fountain=>'linear',
             xa_ratio=>0, ya_ratio=>0,
             xb_ratio=>1.0, yb_ratio=>1.0,
@@ -873,7 +1018,20 @@ sub _style_setup {
   my ($self, $opts) = @_;
   my $style_defs = $self->_style_defs;
   my $style;
-  $style = $styles{$opts->{style}} if $opts->{style};
+
+  # fill in values from api calls
+  $opts->{'size'} = $opts->{'size'} || $self->_getGraphSize();
+  $opts->{'width'} = $opts->{'width'} || $self->_getImageWidth();
+  $opts->{'height'} = $opts->{'height'} || $self->_getImageHeight();
+  $opts->{'font'} = $opts->{'font'} || $self->_getFont();
+  $opts->{'title'} = $opts->{'title'};
+  if (!$opts->{'title'} && $self->_getTitle()) {
+    $opts->{'title'} = { text => $self->_getTitle() };
+  }
+
+  my $pre_def_style = $self->_getStyle();
+  $style = $styles{$pre_def_style} if $pre_def_style;
+
   $style ||= $styles{$def_style};
 
   my @search_list = ( $style_defs, $style, $opts);
@@ -1174,6 +1332,25 @@ sub _data_fill {
   my $fills = $self->{_style}{fills};
   return $self->_translate_fill($fills->[$index % @$fills], $box,
                                 "data.$index");
+}
+
+sub _data_color {
+  my ($self, $index) = @_;
+
+  my $colors = $self->{'_style'}{'colors'} || [];
+  my $fills  = $self->{'_style'}{'fills'} || [];
+
+  # Try to just use a fill, so non-fountain styles don't need
+  # to have a duplicated set of fills and colors
+  my $fill = $fills->[$index % @$fills];
+  if (!ref $fill) {
+    return $fill;
+  }
+
+  if (@$colors) {
+    return $colors->[$index % @$colors] || '000000';
+  }
+  return '000000';
 }
 
 =item _get_fill($index, $box)
