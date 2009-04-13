@@ -11,6 +11,7 @@ use vars qw(@ISA);
 use Imager::Graph;
 @ISA = qw(Imager::Graph);
 
+use constant STARTING_MIN_VALUE => 99999;
 =over 4
 
 =item add_data_series(\@data, $series_name)
@@ -78,16 +79,46 @@ sub add_line_data_series {
   return;
 }
 
+=item set_y_max($value)
+
+Sets the maximum y value to be displayed.  This will be ignored if the y_max is lower than the highest value.
+
+=cut
+
+sub set_y_max {
+  $_[0]->{'custom_style'}->{'y_max'} = $_[1];
+}
+
+=item set_y_min($value)
+
+Sets the minimum y value to be displayed.  This will be ignored if the y_min is higher than the lowest value.
+
+=cut
+
+sub set_y_min {
+  $_[0]->{'custom_style'}->{'y_min'} = $_[1];
+}
+
 =item set_range_padding($percentage)
 
 Sets the padding to be used, as a percentage.  For example, if your data ranges from 0 to 10, and you have a 20 percent padding, the y axis will go to 12.
 
-Defaults to 10.
+Defaults to 10.  This attribute is ignored for positive numbers if set_y_max() has been called, and ignored for negative numbers if set_y_min() has been called.
 
 =cut
 
 sub set_range_padding {
   $_[0]->{'custom_style'}->{'range_padding'} = $_[1];
+}
+
+=item set_negative_background($color)
+
+Sets the background color used below the x axis.
+
+=cut
+
+sub set_negative_background {
+  $_[0]->{'custom_style'}->{'negative_bg'} = $_[1];
 }
 
 =item draw()
@@ -202,28 +233,50 @@ sub _get_data_range {
   # These are side by side...
   $sc_cols += $c_cols;
 
-  $min_value = $self->_min(0, $sc_min, $c_min, $l_min);
+  $min_value = $self->_min(STARTING_MIN_VALUE, $sc_min, $c_min, $l_min);
   $max_value = $self->_max(0, $sc_max, $c_max, $l_max);
+
+  my $config_min = $self->_get_number('y_min');
+  my $config_max = $self->_get_number('y_max');
+
+  if (defined $config_max && $config_max < $max_value) {
+    $config_max = undef;
+  }
+  if (defined $config_min && $config_min > $min_value) {
+    $config_min = undef;
+  }
 
   my $range_padding = $self->_get_number('range_padding');
   if (!defined $range_padding) {
     $range_padding = 10;
   }
-  if ($range_padding && $min_value < 0) {
-    my $difference = $min_value * $range_padding / 100;
-    if ($min_value < -1 && $difference > -1) {
-      $difference = -1;
-    }
-    $min_value += $difference;
+  if (defined $config_min) {
+    $min_value = $config_min;
   }
-  if ($range_padding && $max_value > 0) {
-    my $difference = $max_value * $range_padding / 100;
-    if ($max_value > 1 && $difference < 1) {
-      $difference = 1;
+  else {
+    if ($min_value > 0) {
+      $min_value = 0;
     }
-    $max_value += $difference;
+    if ($range_padding && $min_value < 0) {
+      my $difference = $min_value * $range_padding / 100;
+      if ($min_value < -1 && $difference > -1) {
+        $difference = -1;
+      }
+      $min_value += $difference;
+    }
   }
-
+  if (defined $config_max) {
+    $max_value = $config_max;
+  }
+  else {
+    if ($range_padding && $max_value > 0) {
+      my $difference = $max_value * $range_padding / 100;
+      if ($max_value > 1 && $difference < 1) {
+        $difference = 1;
+      }
+      $max_value += $difference;
+    }
+  }
   $column_count = $self->_max(0, $sc_cols, $l_cols);
 
   $self->_set_max_value($max_value);
@@ -236,6 +289,7 @@ sub _min {
   my $min = shift;
 
   foreach my $value (@_) {
+    next unless defined $value;
     if ($value < $min) { $min = $value; }
   }
   return $min;
@@ -246,6 +300,7 @@ sub _max {
   my $min = shift;
 
   foreach my $value (@_) {
+    next unless defined $value;
     if ($value > $min) { $min = $value; }
   }
   return $min;
@@ -254,10 +309,10 @@ sub _max {
 sub _get_line_range {
   my $self = shift;
   my $series = $self->_get_data_series()->{'line'};
-  return (0, 0, 0) unless $series;
+  return (undef, undef, 0) unless $series;
 
   my $max_value = 0;
-  my $min_value = 0;
+  my $min_value = STARTING_MIN_VALUE;
   my $column_count = 0;
 
   my @series = @{$series};
@@ -281,10 +336,10 @@ sub _get_column_range {
   my $self = shift;
 
   my $series = $self->_get_data_series()->{'column'};
-  return (0, 0, 0) unless $series;
+  return (undef, undef, 0) unless $series;
 
   my $max_value = 0;
-  my $min_value = 0;
+  my $min_value = STARTING_MIN_VALUE;
   my $column_count = 0;
 
   my @series = @{$series};
@@ -305,10 +360,10 @@ sub _get_stacked_column_range {
   my $self = shift;
 
   my $max_value = 0;
-  my $min_value = 0;
+  my $min_value = STARTING_MIN_VALUE;
   my $column_count = 0;
 
-  return (0, 0, 0) unless $self->_get_data_series()->{'stacked_column'};
+  return (undef, undef, 0) unless $self->_get_data_series()->{'stacked_column'};
   my @series = @{$self->_get_data_series()->{'stacked_column'}};
 
   my @max_entries;
@@ -647,12 +702,10 @@ sub _draw_y_tics {
   for my $count (0 .. $tic_count - 1) {
     my $x1 = $graph_box->[0] - 5;
     my $x2 = $graph_box->[0] + 5;
-    my $y1 = $graph_box->[3] - ($count * $tic_distance);
+    my $y1 = $graph_box->[3] - ($count * $tic_distance) + 1;
 
     my $value = sprintf("%.2f", ($count*$interval)+$min);
-    if ($value < 0) {
-        $y1++;
-    }
+
     my @box = $self->_text_bbox($value, 'legend')
       or return;
 
@@ -752,7 +805,5 @@ sub _get_max_value      { return $_[0]->{'max_value'} }
 sub _get_image_box      { return $_[0]->{'image_box'} }
 sub _get_graph_box      { return $_[0]->{'graph_box'} }
 sub _get_series_counter { return $_[0]->{'series_counter'} }
-
-
 
 1;
