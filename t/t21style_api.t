@@ -191,10 +191,6 @@ my ($api_content, $style_content);
 $style_img->write(data => \$style_content, type=>'raw') or die "Err: ".$style_img->errstr;
 $api_img->write(data  => \$api_content,  type=>'raw') or die "Err: ".$api_img->errstr;
 
-open (my $file, ">", '/var/www/tmp/pie_api.tiff');
-print $file $api_content;
-close $file;
-
 ok($style_content eq $api_content);
 
 
