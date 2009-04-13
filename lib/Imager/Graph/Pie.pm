@@ -56,6 +56,42 @@ your graph.  The features you can use with pie graphs are:
 
 =over
 
+=item show_callouts_onAll_segments()
+
+all labels are presented as callouts
+
+=cut
+
+sub show_callouts_onAll_segments {
+    $_[0]->{'custom_style'}->{'features'}->{'allcallouts'} = 1;
+}
+
+=item show_only_label_percentages()
+
+only show the percentage, not the labels.
+
+=cut
+
+sub show_only_label_percentages {
+    $_[0]->{'custom_style'}->{'features'}->{'labelspconly'} = 1;
+}
+
+=item show_label_percentages()
+
+adds the percentage of the pie to each label.
+
+=cut
+
+sub show_label_percentages {
+    $_[0]->{'custom_style'}->{'features'}->{'labelspc'} = 1;
+}
+
+=back
+
+Additionally, arguments can be added to draw() :
+
+=over
+
 =item legend
 
 adds a legend to your graph.  Requires the labels parameter
@@ -147,7 +183,7 @@ Assuming:
   # from the Netcraft September 2001 web survey
   # http://www.netcraft.com/survey/
   my @data   = qw(17874757  8146372   1321544  811406 );
-  my @labels = qw(Apache    Microsoft iPlanet  Zeus   );
+  my @labels = qw(Apache    Microsoft i_planet  Zeus   );
 
   my $pie = Imager::Graph::Pie->new;
 
@@ -193,14 +229,14 @@ suitable for monochrome output:
 sub draw {
   my ($self, %opts) = @_;
 
-  my $data_series = $self->_getDataSeries(\%opts);
+  my $data_series = $self->_get_data_series(\%opts);
 
-  $self->_validInput($data_series)
+  $self->_valid_input($data_series)
     or return;
 
   my @data = @{$data_series->[0]->{'data'}};
 
-  my @labels = @{$self->_getLabels(\%opts) || []};
+  my @labels = @{$self->_get_labels(\%opts) || []};
 
   $self->_style_setup(\%opts);
 
@@ -387,7 +423,7 @@ sub draw {
         #          color=>Imager::Color->new(0,0,0));
         $img->string(%label_text, x=>$tcx-$label->{lbox}[2]/2,
                      'y'=>$tcy+$label->{lbox}[3]/2+$label->{lbox}[1],
-                     text=>$label->{text});
+                     text=>$label->{text}, aa => 1);
       }
       else {
         $label->{callout} = 1;
@@ -415,11 +451,11 @@ sub draw {
       my $ty = $oy + $label->{cbox}[3]/2+$label->{cbox}[1];
       if ($lx < $cx) {
         $img->string(%callout_text, x=>$lx-$callout_gap-$label->{cbox}[2], 
-                     'y'=>$ty, text=>$label->{text});
+                     'y'=>$ty, text=>$label->{text}, aa=>1);
       }
       else {
         $img->string(%callout_text, x=>$lx+$callout_gap, 'y'=>$ty, 
-                     text=>$label->{text});
+                     text=>$label->{text}, aa=>1);
       }
     }
   }
@@ -427,7 +463,7 @@ sub draw {
   $img;
 }
 
-sub _validInput {
+sub _valid_input {
   my ($self, $data_series) = @_;
 
   if (!defined $data_series || !scalar @$data_series) {
@@ -478,7 +514,7 @@ sub _consolidate_segments {
   my ($self, $data, $labels, $total) = @_;
 
   my @others;
-  my $index;
+  my $index = 0;
   for my $item (@$data) {
     if ($item / $total < $self->{_style}{pie}{maxsegment}) {
       push(@others, $index);

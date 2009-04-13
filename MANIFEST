@@ -6,6 +6,7 @@ lib/Imager/Graph/Line.pm
 lib/Imager/Graph/Pie.pm
 lib/Imager/Graph/StackedColumn.pm
 lib/Imager/Graph/Util.pm
+lib/Imager/Graph/Vertical.pm
 Makefile.PL
 MANIFEST
 MANIFEST.bak
@@ -14,7 +15,11 @@ README
 t/lib/Imager/Font/Test.pm
 t/t00load.t
 t/t10pie.t
+t/t11line.t
+t/t12column.t
+t/t13stacked_col.t
 t/t20api.t
+t/t21style_api.t
 t/t91pod.t
 t/t93podcover.t
 testimg/t10_hlegend.png
