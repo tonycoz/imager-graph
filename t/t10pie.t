@@ -21,7 +21,7 @@ my $font = Imager::Font::Test->new();
 my @data = ( 100, 180, 80, 20, 2, 1, 0.5 );
 my @labels = qw(alpha beta gamma delta epsilon phi gi);
 
-plan tests => 34;
+plan tests => 35;
 
 my $pie = Imager::Graph::Pie->new;
 ok($pie, "creating pie chart object");
@@ -115,6 +115,12 @@ cmpimg($img6, "testimg/t10_hlegend.png", 550_000);
   # zero sized segments were drawn to cover the whole circle
   my @data = ( 10, 8, 5, 0.000 );
   my @labels = qw(alpha beta gamma);
+  my @warned;
+  local $SIG{__WARN__} = 
+    sub { 
+      print STDERR $_[0];
+      push @warned, $_[0]
+    };
   
   my $img = $pie->draw
     (
@@ -127,6 +133,9 @@ cmpimg($img6, "testimg/t10_hlegend.png", 550_000);
   ok($img->write(file => 'testout/t10_noother.ppm'),
      "save it");
   cmpimg($img, 'testimg/t10_noother.png', 500_000);
+  unless (is(@warned, 0, "should be no warnings")) {
+    diag($_) for @warned;
+  }
 }
 
 { # RT #535

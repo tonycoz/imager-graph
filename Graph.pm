@@ -107,7 +107,21 @@ sub addDataSeries {
 }
 
 sub _getDataSeries {
-  return $_[0]->{'graph_data'};
+  my ($self, $opts) = @_;
+
+  # return the data supplied to draw() if any.
+  if ($opts->{data}) {
+    # one or multiple series?
+    my $data = $opts->{data};
+    if (@$data && ref $data->[0] && ref $data->[0] =~ /ARRAY/) {
+      return $data;
+    }
+    else {
+      return [ { data => $data } ];
+    }
+  }
+
+  return $self->{'graph_data'};
 }
 
 =item setLabels(['label1', 'label2' ... ])
@@ -121,6 +135,11 @@ sub setLabels {
 }
 
 sub _getLabels {
+  my ($self, $opts) = @_;
+
+  $opts->{labels}
+    and return $opts->{labels};
+
   return $_[0]->{'labels'}
 }
 
@@ -163,7 +182,12 @@ sub setStyle {
 }
 
 sub _getStyle {
-  return $_[0]->{'style'};
+  my ($self, $opts) = @_;
+
+  $opts->{style}
+    and return $opts->{style};
+
+  return $self->{'style'};
 }
 
 =item error
@@ -840,24 +864,6 @@ sub _style_defs {
   \%style_defs;
 }
 
-sub _processOptions {
-  my $self = shift;
-  my $opts = shift;
-
-  if ($opts->{'style'}) {
-    $self->setStyle($opts->{'style'});
-  }
-
-  if ($opts->{'data'}) {
-    $self->addDataSeries($opts->{'data'});
-  }
-  if ($opts->{'labels'}) {
-    $self->setLabels($opts->{'labels'});
-  }
-}
-
-
-
 # Let's make the default something that looks really good, so folks will be interested enough to customize the style.
 my $def_style = 'fount_lin';
 
@@ -1029,7 +1035,7 @@ sub _style_setup {
     $opts->{'title'} = { text => $self->_getTitle() };
   }
 
-  my $pre_def_style = $self->_getStyle();
+  my $pre_def_style = $self->_getStyle($opts);
   $style = $styles{$pre_def_style} if $pre_def_style;
 
   $style ||= $styles{$def_style};
@@ -1055,7 +1061,8 @@ sub _style_setup {
         }
       }
       else {
-        $work{$key} = $src->{$key};
+        $work{$key} = $src->{$key}
+	  if defined $src->{$key}; # $opts with pmichauds new accessor handling
       }
     }
   }

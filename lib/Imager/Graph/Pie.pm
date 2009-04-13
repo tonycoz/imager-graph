@@ -193,16 +193,14 @@ suitable for monochrome output:
 sub draw {
   my ($self, %opts) = @_;
 
-  $self->_processOptions(\%opts);
+  my $data_series = $self->_getDataSeries(\%opts);
 
-  if (!$self->_validInput()) {
-    return;
-  }
+  $self->_validInput($data_series)
+    or return;
 
-  my @data = @{$self->_getDataSeries()->[0]->{'data'}};
+  my @data = @{$data_series->[0]->{'data'}};
 
-  my @labels = @{$self->_getLabels() || []};
-
+  my @labels = @{$self->_getLabels(\%opts) || []};
 
   $self->_style_setup(\%opts);
 
@@ -430,22 +428,25 @@ sub draw {
 }
 
 sub _validInput {
-  my $self = shift;
+  my ($self, $data_series) = @_;
 
-  if (!defined $self->_getDataSeries() || !scalar @{$self->_getDataSeries()}) {
+  if (!defined $data_series || !scalar @$data_series) {
     return $self->_error("No data supplied");
   }
 
-  if (!scalar @{$self->_getDataSeries()->[0]->{'data'}}) {
+  @$data_series == 1
+    or return $self->_error("Pie charts only allow one data series");
+
+  my $data = $data_series->[0]{data};
+
+  if (!scalar @$data) {
     return $self->_error("No values in data series");
   }
-
-  my @data = @{$self->_getDataSeries()->[0]->{'data'}};
 
   my $total = 0;
   {
     my $index = 0;
-    for my $item (@data) {
+    for my $item (@$data) {
       $item < 0
         and return $self->_error("Data index $index is less than zero");
 
