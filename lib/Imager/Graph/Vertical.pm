@@ -458,6 +458,7 @@ sub _draw_lines {
   my $col_width = int($size / $column_count) -1;
   my $graph_width = $col_width * $column_count + 1;
 
+  my $line_aa = $self->_get_number("lineaa");
   foreach my $series (@$line_series) {
     my @data = @{$series->{'data'}};
     my $data_size = scalar @data;
@@ -484,7 +485,7 @@ sub _draw_lines {
       my $y2 = $bottom + ($value_range - $data[$i + 1] + $min_value)/$value_range * $size;
 
       push @marker_positions, [$x1, $y1];
-      $img->line(x1 => $x1, y1 => $y1, x2 => $x2, y2 => $y2, aa => 1, color => $color) || die $img->errstr;
+      $img->line(x1 => $x1, y1 => $y1, x2 => $x2, y2 => $y2, aa => $line_aa, color => $color) || die $img->errstr;
     }
 
     my $x2 = $left + ($data_size - 1) * $interval;
@@ -527,9 +528,11 @@ sub _draw_line_marker {
   my $type = $style->{'shape'};
   my $radius = $style->{'radius'};
 
+  my $line_aa = $self->_get_number("lineaa");
+  my $fill_aa = $self->_get_number("fill.aa");
   if ($type eq 'circle') {
     my @fill = $self->_data_fill($series_counter, [$x1 - $radius, $y1 - $radius, $x1 + $radius, $y1 + $radius]);
-    $img->circle(x => $x1, y => $y1, r => $radius, aa => 1, filled => 1, @fill);
+    $img->circle(x => $x1, y => $y1, r => $radius, aa => $fill_aa, filled => 1, @fill);
   }
   elsif ($type eq 'square') {
     my @fill = $self->_data_fill($series_counter, [$x1 - $radius, $y1 - $radius, $x1 + $radius, $y1 + $radius]);
@@ -545,7 +548,7 @@ sub _draw_line_marker {
                     [$x1 + $radius, $y1],
                     [$x1, $y1 - $radius],
                   ],
-        filled => 1, color => $color, aa => 1);
+        filled => 1, color => $color, aa => $fill_aa);
   }
   elsif ($type eq 'triangle') {
     # The gradient really doesn't work for triangle
@@ -556,18 +559,18 @@ sub _draw_line_marker {
                     [$x1 + $radius, $y1 + $radius],
                     [$x1, $y1 - $radius],
                   ],
-        filled => 1, color => $color, aa => 1);
+        filled => 1, color => $color, aa => $fill_aa);
 
   }
   elsif ($type eq 'x') {
     my $color = $self->_data_color($series_counter);
-    $img->line(x1 => $x1 - $radius, y1 => $y1 -$radius, x2 => $x1 + $radius, y2 => $y1+$radius, aa => 1, color => $color) || die $img->errstr;
-    $img->line(x1 => $x1 + $radius, y1 => $y1 -$radius, x2 => $x1 - $radius, y2 => $y1+$radius, aa => 1, color => $color) || die $img->errstr;
+    $img->line(x1 => $x1 - $radius, y1 => $y1 -$radius, x2 => $x1 + $radius, y2 => $y1+$radius, aa => $line_aa, color => $color) || die $img->errstr;
+    $img->line(x1 => $x1 + $radius, y1 => $y1 -$radius, x2 => $x1 - $radius, y2 => $y1+$radius, aa => $line_aa, color => $color) || die $img->errstr;
   }
   elsif ($type eq 'plus') {
     my $color = $self->_data_color($series_counter);
-    $img->line(x1 => $x1, y1 => $y1 -$radius, x2 => $x1, y2 => $y1+$radius, aa => 1, color => $color) || die $img->errstr;
-    $img->line(x1 => $x1 + $radius, y1 => $y1, x2 => $x1 - $radius, y2 => $y1, aa => 1, color => $color) || die $img->errstr;
+    $img->line(x1 => $x1, y1 => $y1 -$radius, x2 => $x1, y2 => $y1+$radius, aa => $line_aa, color => $color) || die $img->errstr;
+    $img->line(x1 => $x1 + $radius, y1 => $y1, x2 => $x1 - $radius, y2 => $y1, aa => $line_aa, color => $color) || die $img->errstr;
   }
 }
 

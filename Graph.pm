@@ -1151,10 +1151,12 @@ my %style_defs =
   (
    back=> 'lookup(bg)',
    line=> 'lookup(fg)',
+   aa => 1,
    text=>{
           color => 'lookup(fg)',
           font  => 'lookup(font)',
           size  => 14,
+	  aa    => 'lookup(aa)',
          },
    title=>{ 
            color  => 'lookup(text.color)', 
@@ -1162,10 +1164,12 @@ my %style_defs =
            halign => 'center', 
            valign => 'top',
            size   => 'scale(text.size,2.0)',
+	   aa     => 'lookup(text.aa)',
           },
    legend =>{
              color          => 'lookup(text.color)',
              font           => 'lookup(text.font)',
+	     aa             => 'lookup(text.aa)',
              size           => 'lookup(text.size)',
              patchsize      => 'scale(legend.size,0.9)',
              patchgap       => 'scale(legend.patchsize,0.3)',
@@ -1184,6 +1188,8 @@ my %style_defs =
                outside  => 'lookup(callout.size)',
                leadlen  => 'scale(0.8,callout.size)',
                gap      => 'scale(callout.size,0.3)',
+	       aa       => 'lookup(text.aa)',
+	       lineaa   => 'lookup(lineaa)',
               },
    label => {
              font          => 'lookup(text.font)',
@@ -1194,6 +1200,8 @@ my %style_defs =
              pad           => 'scale(label.size,0.2)',
              pcformat      => sub { sprintf "%s (%.0f%%)", $_[0], $_[1] },
              pconlyformat  => sub { sprintf "%.1f%%", $_[0] },
+	     aa            => 'lookup(text.aa)',
+	     lineaa        => 'lookup(lineaa)',
              },
    dropshadow => {
                   fill    => { solid => Imager::Color->new(0, 0, 0, 96) },
@@ -1207,10 +1215,18 @@ my %style_defs =
                  },
    outline => {
                line =>'lookup(line)',
+	       lineaa => 'lookup(lineaa)',
               },
    size=>256,
    width=>'scale(1.5,size)',
    height=>'lookup(size)',
+
+   # yes, the handling of fill and line AA is inconsistent, lack of
+   # forethought, unfortunately
+   fill => {
+	    aa => 'lookup(aa)',
+	   },
+   lineaa => 'lookup(aa)',
   );
 
 =item _error($message)
@@ -1306,6 +1322,7 @@ my %styles =
     pie =>{
            blur=>undef,
           },
+    aa => 0,
    },
    fount_lin =>
    {
@@ -1877,6 +1894,9 @@ and draw() methods intended for use in defining text styles.
 
 Returns an empty list on failure.
 
+Returns the following attributes: font, color, size, aa, sizew
+(optionally)
+
 =cut
 
 sub _text_style {
@@ -1904,6 +1924,7 @@ sub _text_style {
   $work{size} = $self->_get_number("$name.size");
   $work{sizew} = $self->_get_number("$name.sizew")
     if $work{sizew};
+  $work{aa} = $self->_get_number("$name.aa");
 
   %work;
 }
@@ -1926,6 +1947,28 @@ sub _text_bbox {
                                             canon=>1);
 
   return @bbox[0..3];
+}
+
+=item _line_style($name)
+
+Return parameters suitable for calls to Imager's line(), polyline(),
+and box() methods.
+
+For now this returns only color and aa parameters, but future releases
+of Imager may support extra parameters.
+
+=cut
+
+sub _line_style {
+  my ($self, $name) = @_;
+
+  my %line;
+  $line{color} = $self->_get_color("$name.line")
+    or return;
+  $line{aa} = $self->_get_number("$name.lineaa");
+  defined $line{aa} or $line{aa} = $self->_get_number("aa");
+
+  return %line;
 }
 
 sub _align_box {

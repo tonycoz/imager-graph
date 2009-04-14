@@ -373,30 +373,31 @@ sub draw {
   }
 
   my @fill_box = ( $cx-$radius, $cy-$radius, $cx+$radius, $cy+$radius );
+  my $fill_aa = $self->_get_number('fill.aa');
   for my $item (@info) {
     $item->{begin} < $item->{end}
       or next;
     my @fill = $self->_data_fill($item->{index}, \@fill_box)
       or return;
-    $img->arc(x=>$cx, 'y'=>$cy, r=>$radius, aa => 1,
+    $img->arc(x=>$cx, 'y'=>$cy, r=>$radius, aa => $fill_aa,
               d1=>180/PI * $item->{begin}, d2=>180/PI * $item->{end},
               @fill);
   }
   if ($style->{features}{outline}) {
-    my $outcolor = $self->_get_color('outline.line');
+    my %outstyle = $self->_line_style('outline');
+    my $out_radius = 0.5 + $radius;
     for my $item (@info) {
-      my $px = int($cx + $radius * cos($item->{begin}));
-      my $py = int($cy + $radius * sin($item->{begin}));
+      my $px = int($cx + $out_radius * cos($item->{begin}));
+      my $py = int($cy + $out_radius * sin($item->{begin}));
       $item->{begin} < $item->{end}
         or next;
-      $img->line(x1=>$cx, y1=>$cy, x2=>$px, y2=>$py, color=>$outcolor);
+      $img->line(x1=>$cx, y1=>$cy, x2=>$px, y2=>$py, %outstyle);
       for (my $i = $item->{begin}; $i < $item->{end}; $i += PI/180) {
         my $stroke_end = $i + PI/180;
         $stroke_end = $item->{end} if $stroke_end > $item->{end};
-        my $nx = int($cx + $radius * cos($stroke_end));
-        my $ny = int($cy + $radius * sin($stroke_end));
-        $img->line(x1=>$px, y1=>$py, x2=>$nx, y2=>$ny, color=>$outcolor,
-                  antialias=>1);
+        my $nx = int($cx + $out_radius * cos($stroke_end));
+        my $ny = int($cy + $out_radius * sin($stroke_end));
+        $img->line(x1=>$px, y1=>$py, x2=>$nx, y2=>$ny, %outstyle);
         ($px, $py) = ($nx, $ny);
       }
     }
@@ -406,6 +407,8 @@ sub draw {
   $callout_outside += $radius;
   my %callout_text;
   my %label_text;
+  my %callout_line;
+  my $leader_aa = $self->_get_number('callout.leadaa');
   for my $label (@info) {
     if ($label->{label} && !$label->{callout}) {
       # at this point we know we need the label font, to calculate
@@ -423,7 +426,7 @@ sub draw {
         #          color=>Imager::Color->new(0,0,0));
         $img->string(%label_text, x=>$tcx-$label->{lbox}[2]/2,
                      'y'=>$tcy+$label->{lbox}[3]/2+$label->{lbox}[1],
-                     text=>$label->{text}, aa => 1);
+                     text=>$label->{text});
       }
       else {
         $label->{callout} = 1;
@@ -437,25 +440,26 @@ sub draw {
       unless (%callout_text) {
         %callout_text = $self->_text_style('callout')
           or return;
+	%callout_line = $self->_line_style('callout');
       }
       my $ix = floor(0.5 + $cx + $callout_inside * cos($label->{cangle}));
       my $iy = floor(0.5 + $cy + $callout_inside * sin($label->{cangle}));
       my $ox = floor(0.5 + $cx + $callout_outside * cos($label->{cangle}));
       my $oy = floor(0.5 + $cy + $callout_outside * sin($label->{cangle}));
       my $lx = ($ox < $cx) ? $ox - $callout_leadlen : $ox + $callout_leadlen;
-      $img->line(x1=>$ix, y1=>$iy, x2=>$ox, y2=>$oy, antialias=>1,
-                 color=>$self->_get_color('callout.color'));
-      $img->line(x1=>$ox, y1=>$oy, x2=>$lx, y2=>$oy, antialias=>1,
-                 color=>$self->_get_color('callout.color'));
+      $img->polyline(points => [ [ $ix, $iy ],
+				 [ $ox, $oy ],
+				 [ $lx, $oy ] ],
+		     %callout_line);
       #my $tx = $lx + $callout_gap;
       my $ty = $oy + $label->{cbox}[3]/2+$label->{cbox}[1];
       if ($lx < $cx) {
         $img->string(%callout_text, x=>$lx-$callout_gap-$label->{cbox}[2], 
-                     'y'=>$ty, text=>$label->{text}, aa=>1);
+                     'y'=>$ty, text=>$label->{text});
       }
       else {
         $img->string(%callout_text, x=>$lx+$callout_gap, 'y'=>$ty, 
-                     text=>$label->{text}, aa=>1);
+                     text=>$label->{text});
       }
     }
   }
