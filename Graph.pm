@@ -1345,6 +1345,14 @@ my %styles =
     colors  => [
      qw(FF0000 00FF00 0000FF C0C000 00C0C0 FF00FF)
     ],
+    line_markers =>[
+      { shape => 'circle',   radius => 4 },
+      { shape => 'square',   radius => 4 },
+      { shape => 'diamond',  radius => 4 },
+      { shape => 'triangle', radius => 4 },
+      { shape => 'x',        radius => 4 },
+      { shape => 'plus',     radius => 4 },
+    ],
     back=>{ fountain=>'linear',
             xa_ratio=>0, ya_ratio=>0,
             xb_ratio=>1.0, yb_ratio=>1.0,

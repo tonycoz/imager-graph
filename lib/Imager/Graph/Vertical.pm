@@ -469,8 +469,10 @@ sub _draw_lines {
     else {
       $interval = $graph_width / ($data_size - 1);
     }
-    my @fill = $self->_data_fill($series_counter, $self->_get_graph_box());
     my $color = $self->_data_color($series_counter);
+
+    # We need to add these last, otherwise the next line segment will overwrite half of the marker
+    my @marker_positions;
     for (my $i = 0; $i < $data_size - 1; $i++) {
       my $x1 = $left + $i * $interval;
       my $x2 = $left + ($i + 1) * $interval;
@@ -481,8 +483,8 @@ sub _draw_lines {
       my $y1 = $bottom + ($value_range - $data[$i] + $min_value)/$value_range * $size;
       my $y2 = $bottom + ($value_range - $data[$i + 1] + $min_value)/$value_range * $size;
 
+      push @marker_positions, [$x1, $y1];
       $img->line(x1 => $x1, y1 => $y1, x2 => $x2, y2 => $y2, aa => 1, color => $color) || die $img->errstr;
-      $img->circle(x => $x1, y => $y1, r => 3, aa => 1, filled => 1, @fill);
     }
 
     my $x2 = $left + ($data_size - 1) * $interval;
@@ -490,12 +492,83 @@ sub _draw_lines {
 
     my $y2 = $bottom + ($value_range - $data[$data_size - 1] + $min_value)/$value_range * $size;
 
-    $img->circle(x => $x2, y => $y2, r => 3, aa => 1, filled => 1, @fill);
+    push @marker_positions, [$x2, $y2];
+    foreach my $position (@marker_positions) {
+      $self->_draw_line_marker($position->[0], $position->[1], $series_counter);
+    }
     $series_counter++;
   }
 
   $self->_set_series_counter($series_counter);
   return;
+}
+
+sub _line_marker {
+  my ($self, $index) = @_;
+
+  my $markers = $self->{'_style'}{'line_markers'};
+  if (!$markers) {
+    return;
+  }
+  my $marker = $markers->[$index % @$markers];
+
+  return $marker;
+}
+
+sub _draw_line_marker {
+  my $self = shift;
+  my ($x1, $y1, $series_counter) = @_;
+
+  my $img = $self->_get_image();
+
+  my $style = $self->_line_marker($series_counter);
+  return unless $style;
+
+  my $type = $style->{'shape'};
+  my $radius = $style->{'radius'};
+
+  if ($type eq 'circle') {
+    my @fill = $self->_data_fill($series_counter, [$x1 - $radius, $y1 - $radius, $x1 + $radius, $y1 + $radius]);
+    $img->circle(x => $x1, y => $y1, r => $radius, aa => 1, filled => 1, @fill);
+  }
+  elsif ($type eq 'square') {
+    my @fill = $self->_data_fill($series_counter, [$x1 - $radius, $y1 - $radius, $x1 + $radius, $y1 + $radius]);
+    $img->box(xmin => $x1 - $radius, ymin => $y1 - $radius, xmax => $x1 + $radius, ymax => $y1 + $radius, @fill);
+  }
+  elsif ($type eq 'diamond') {
+    # The gradient really doesn't work for diamond
+    my $color = $self->_data_color($series_counter);
+    $img->polygon(
+        points => [
+                    [$x1 - $radius, $y1],
+                    [$x1, $y1 + $radius],
+                    [$x1 + $radius, $y1],
+                    [$x1, $y1 - $radius],
+                  ],
+        filled => 1, color => $color, aa => 1);
+  }
+  elsif ($type eq 'triangle') {
+    # The gradient really doesn't work for triangle
+    my $color = $self->_data_color($series_counter);
+    $img->polygon(
+        points => [
+                    [$x1 - $radius, $y1 + $radius],
+                    [$x1 + $radius, $y1 + $radius],
+                    [$x1, $y1 - $radius],
+                  ],
+        filled => 1, color => $color, aa => 1);
+
+  }
+  elsif ($type eq 'x') {
+    my $color = $self->_data_color($series_counter);
+    $img->line(x1 => $x1 - $radius, y1 => $y1 -$radius, x2 => $x1 + $radius, y2 => $y1+$radius, aa => 1, color => $color) || die $img->errstr;
+    $img->line(x1 => $x1 + $radius, y1 => $y1 -$radius, x2 => $x1 - $radius, y2 => $y1+$radius, aa => 1, color => $color) || die $img->errstr;
+  }
+  elsif ($type eq 'plus') {
+    my $color = $self->_data_color($series_counter);
+    $img->line(x1 => $x1, y1 => $y1 -$radius, x2 => $x1, y2 => $y1+$radius, aa => 1, color => $color) || die $img->errstr;
+    $img->line(x1 => $x1 + $radius, y1 => $y1, x2 => $x1 - $radius, y2 => $y1, aa => 1, color => $color) || die $img->errstr;
+  }
 }
 
 sub _draw_columns {
