@@ -804,7 +804,7 @@ sub set_y_tics {
 }
 
 sub _get_y_tics {
-  return $_[0]->{'y_tics'};
+  return $_[0]->{'y_tics'} || 0;
 }
 
 sub _remove_tics_from_chart_box {

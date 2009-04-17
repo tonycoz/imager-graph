@@ -13,7 +13,15 @@ use Test::More;
 
 use Imager qw(:handy);
 
-plan tests => 2;
+plan tests => 3;
+
+my @warned;
+local $SIG{__WARN__} =
+  sub {
+    print STDERR $_[0];
+    push @warned, $_[0]
+  };
+
 
 #my $fontfile = 'ImUgly.ttf';
 #my $font = Imager::Font->new(file=>$fontfile, type => 'ft2', aa=>1)
@@ -35,3 +43,6 @@ ok($img1, "drawing stacked_col chart");
 $img1->write(file=>'testout/t13_basic.ppm') or die "Can't save img1: ".$img1->errstr."\n";
 
 
+unless (is(@warned, 0, "should be no warnings")) {
+  diag($_) for @warned;
+}
