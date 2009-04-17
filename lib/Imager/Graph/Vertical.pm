@@ -152,7 +152,7 @@ sub draw {
   }
 
   # Scale the graph box down to the widest graph that can cleanly hold the # of columns.
-  $self->_get_data_range();
+  return unless $self->_get_data_range();
   $self->_remove_tics_from_chart_box(\@chart_box);
   my $column_count = $self->_get_column_count();
 
@@ -301,9 +301,9 @@ sub _get_data_range {
 
   if ($self->_get_number('automatic_axis')) {
     # In case this was set via a style, and not by the api method
-    eval { require "Chart/Math/Axis.pm"; };
+    eval { require Chart::Math::Axis; };
     if ($@) {
-      die "Can't use automatic_axis - $@";
+      return $self->_error("Can't use automatic_axis - $@");
     }
 
     my $axis = Chart::Math::Axis->new();
@@ -318,6 +318,8 @@ sub _get_data_range {
   $self->_set_max_value($max_value);
   $self->_set_min_value($min_value);
   $self->_set_column_count($column_count);
+
+  return 1;
 }
 
 sub _min {
@@ -780,16 +782,17 @@ sub show_horizontal_gridlines {
 
 =item use_automatic_axis()
 
-Automatically scale the Y axis, based on L<Chart::Math::Axis>
+Automatically scale the Y axis, based on L<Chart::Math::Axis>.  If Chart::Math::Axis isn't installed, this sets an error and returns undef.  Returns 1 if it is installed.
 
 =cut
 
 sub use_automatic_axis {
-  eval { require "Chart/Math/Axis.pm"; };
+  eval { require Chart::Math::Axis; };
   if ($@) {
-    die "use_automatic_axis - $@\nCalled from ".join(' ', caller)."\n";
+    return $_[0]->_error("use_automatic_axis - $@\nCalled from ".join(' ', caller)."\n");
   }
   $_[0]->{'custom_style'}->{'automatic_axis'} = 1;
+  return 1;
 }
 
 
