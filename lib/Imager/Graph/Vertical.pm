@@ -824,6 +824,11 @@ sub _remove_tics_from_chart_box {
 
   $self->_remove_box($chart_box, \@y_tic_box);
   $self->_remove_box($chart_box, \@x_tic_box);
+
+  # If there's no title, the y-tics will be part off-screen.  Half of the x-tic height should be more than sufficient.
+  my @y_tic_tops = ($chart_box->[0], $chart_box->[1], $chart_box->[2], $chart_box->[1] + int($tic_height / 2));
+  $self->_remove_box($chart_box, \@y_tic_tops);
+
 }
 
 sub _get_y_tic_width{
