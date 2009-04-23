@@ -99,6 +99,16 @@ sub set_y_min {
   $_[0]->{'custom_style'}->{'y_min'} = $_[1];
 }
 
+=item set_column_padding($int)
+
+Sets the padding between columns.  This is a percentage of the column width.  Defaults to 0.
+
+=cut
+
+sub set_column_padding {
+  $_[0]->{'custom_style'}->{'column_padding'} = $_[1];
+}
+
 =item set_range_padding($percentage)
 
 Sets the padding to be used, as a percentage.  For example, if your data ranges from 0 to 10, and you have a 20 percent padding, the y axis will go to 12.
@@ -223,13 +233,13 @@ sub draw {
   }
 
   if ($self->_get_data_series()->{'stacked_column'}) {
-    $self->_draw_stacked_columns();
+    return unless $self->_draw_stacked_columns();
   }
   if ($self->_get_data_series()->{'column'}) {
-    $self->_draw_columns();
+    return unless $self->_draw_columns();
   }
   if ($self->_get_data_series()->{'line'}) {
-    $self->_draw_lines();
+    return unless $self->_draw_lines();
   }
 
   if ($self->_get_y_tics()) {
@@ -536,7 +546,7 @@ sub _draw_lines {
   }
 
   $self->_set_series_counter($series_counter);
-  return;
+  return 1;
 }
 
 sub _line_marker {
@@ -642,6 +652,8 @@ sub _draw_columns {
 
   my $series_counter = $self->_get_series_counter() || 0;
   my $col_series = $self->_get_data_series()->{'column'};
+  my $column_padding_percent = $self->_get_number('column_padding') || 0;
+  my $column_padding = int($column_padding_percent * $bar_width / 100);
 
   # This tracks the series we're in relative to the starting series - this way colors stay accurate, but the columns don't start out too far to the right.
   my $column_series = 0;
@@ -655,11 +667,11 @@ sub _draw_columns {
     my $data_size = scalar @data;
     my $color = $self->_data_color($series_counter);
     for (my $i = 0; $i < $data_size; $i++) {
-      my $x1 = int($left + $bar_width * (scalar @$col_series * $i + $series_pos)) + scalar @$col_series * $i + $series_pos;
+      my $x1 = int($left + $bar_width * (scalar @$col_series * $i + $series_pos)) + scalar @$col_series * $i + $series_pos + ($column_padding / 2);
       if ($has_stacked_columns) {
         $x1 += ($i + 1) * $bar_width + $i + 1;
       }
-      my $x2 = $x1 + $bar_width;
+      my $x2 = $x1 + $bar_width - $column_padding;
 
       my $y1 = int($bottom + ($value_range - $data[$i] + $min_value)/$value_range * $graph_height);
 
@@ -684,7 +696,7 @@ sub _draw_columns {
     $column_series++;
   }
   $self->_set_series_counter($series_counter);
-  return;
+  return 1;
 }
 
 sub _draw_stacked_columns {
@@ -712,6 +724,15 @@ sub _draw_stacked_columns {
   }
   $column_series++;
 
+  my $column_padding_percent = $self->_get_number('column_padding') || 0;
+  if ($column_padding_percent < 0) {
+    return $self->_error("Column padding less than 0");
+  }
+  if ($column_padding_percent > 100) {
+    return $self->_error("Column padding greater than 0");
+  }
+  my $column_padding = int($column_padding_percent * $bar_width / 100);
+
   my $outline_color;
   if ($style->{'features'}{'outline'}) {
     $outline_color = $self->_get_color('outline.line');
@@ -720,15 +741,16 @@ sub _draw_stacked_columns {
   my $zero_position =  $bottom + $graph_height - (-1*$min_value / $value_range) * ($graph_height -1);
   my $col_series = $self->_get_data_series()->{'stacked_column'};
   my $series_counter = $self->_get_series_counter() || 0;
+
   foreach my $series (@$col_series) {
     my @data = @{$series->{'data'}};
     my $data_size = scalar @data;
     my $color = $self->_data_color($series_counter);
     for (my $i = 0; $i < $data_size; $i++) {
-      my $x1 = int($left + $bar_width * ($column_series * $i)) + $column_series * $i;
-      my $x2 = $x1 + $bar_width;
+      my $x1 = int($left + $bar_width * ($column_series * $i)) + $column_series * $i + ($column_padding / 2);
+      my $x2 = $x1 + $bar_width - $column_padding;
 
-      my $y1 = $bottom + ($value_range - $data[$i] + $min_value)/$value_range * $graph_height;
+      my $y1 = int($bottom + ($value_range - $data[$i] + $min_value)/$value_range * $graph_height);
 
       if ($data[$i] > 0) {
         $img->box(xmin => $x1, xmax => $x2, ymin => $y1, ymax => $zero_position-1, color => $color, filled => 1);
@@ -747,7 +769,7 @@ sub _draw_stacked_columns {
     $series_counter++;
   }
   $self->_set_series_counter($series_counter);
-  return;
+  return 1;
 }
 
 sub _add_data_series {
@@ -867,6 +889,10 @@ sub _get_x_tic_height {
   my $self = shift;
 
   my $labels = $self->_get_labels();
+
+  if (!$labels) {
+        return;
+  }
 
   my $tic_count = (scalar @$labels) - 1;
 
