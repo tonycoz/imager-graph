@@ -1,8 +1,8 @@
-package Imager::Graph::Vertical;
+package Imager::Graph::Horizontal;
 
 =head1 NAME
 
-  Imager::Graph::Vertical- A super class for line/bar/column charts
+  Imager::Graph::Horizontal - A super class for line/bar charts
 
 =cut
 
@@ -12,6 +12,7 @@ use Imager::Graph;
 @ISA = qw(Imager::Graph);
 
 use constant STARTING_MIN_VALUE => 99999;
+
 =over 4
 
 =item add_data_series(\@data, $series_name)
@@ -47,22 +48,6 @@ sub add_column_data_series {
   return;
 }
 
-=item add_stacked_column_data_series(\@data, $series_name)
-
-Add a stacked column data series to the graph.
-
-=cut
-
-sub add_stacked_column_data_series {
-  my $self = shift;
-  my $data_ref = shift;
-  my $series_name = shift;
-
-  $self->_add_data_series('stacked_column', $data_ref, $series_name);
-
-  return;
-}
-
 =item add_line_data_series(\@data, $series_name)
 
 Add a line data series to the graph.
@@ -79,46 +64,14 @@ sub add_line_data_series {
   return;
 }
 
-=item set_y_max($value)
-
-Sets the maximum y value to be displayed.  This will be ignored if the y_max is lower than the highest value.
-
-=cut
-
-sub set_y_max {
-  $_[0]->{'custom_style'}->{'y_max'} = $_[1];
-}
-
-=item set_y_min($value)
-
-Sets the minimum y value to be displayed.  This will be ignored if the y_min is higher than the lowest value.
-
-=cut
-
-sub set_y_min {
-  $_[0]->{'custom_style'}->{'y_min'} = $_[1];
-}
-
 =item set_column_padding($int)
 
-Sets the padding between columns.  This is a percentage of the column width.  Defaults to 0.
+Sets the number of pixels that should go between columns of data.
 
 =cut
 
 sub set_column_padding {
   $_[0]->{'custom_style'}->{'column_padding'} = $_[1];
-}
-
-=item set_range_padding($percentage)
-
-Sets the padding to be used, as a percentage.  For example, if your data ranges from 0 to 10, and you have a 20 percent padding, the y axis will go to 12.
-
-Defaults to 10.  This attribute is ignored for positive numbers if set_y_max() has been called, and ignored for negative numbers if set_y_min() has been called.
-
-=cut
-
-sub set_range_padding {
-  $_[0]->{'custom_style'}->{'range_padding'} = $_[1];
 }
 
 =item set_negative_background($color)
@@ -172,12 +125,12 @@ sub draw {
   my $graph_width = $chart_box[2] - $chart_box[0];
   my $graph_height = $chart_box[3] - $chart_box[1];
 
-  my $col_width = int(($graph_width - 1) / $column_count) -1;
-  $graph_width = $col_width * $column_count + 1;
+  my $col_height = int(($graph_height - 1) / $column_count) -1;
+  $graph_height = $col_height * $column_count + 1;
 
-  my $tic_count = $self->_get_y_tics();
-  my $tic_distance = int(($graph_height-1) / ($tic_count - 1));
-  $graph_height = $tic_distance * ($tic_count - 1);
+  my $tic_count = $self->_get_x_tics();
+  my $tic_distance = int(($graph_width -1) / ($tic_count - 1));
+  $graph_width = $tic_distance * ($tic_count - 1);
 
   my $bottom = $chart_box[1];
   my $left   = $chart_box[0];
@@ -211,42 +164,36 @@ sub draw {
 
   my $zero_position;
   if ($value_range) {
-    $zero_position =  $bottom + $graph_height - (-1*$min_value / $value_range) * ($graph_height-1);
+    $zero_position =  $left + (-1*$min_value / $value_range) * ($graph_width-1);
   }
 
   if ($min_value < 0) {
     $img->box(
             color   => $self->_get_color('negative_bg'),
-            xmin    => $left + 1,
-            xmax    => $left+$graph_width- 1,
-            ymin    => $zero_position,
+            xmin    => $left+1,
+            xmax    => $zero_position,
+            ymin    => $bottom+1,
             ymax    => $bottom+$graph_height - 1,
             filled  => 1,
     );
     $img->line(
-            x1 => $left+1,
-            y1 => $zero_position,
-            x2 => $left + $graph_width,
-            y2 => $zero_position,
+            x1 => $zero_position,
+            y1 => $bottom,
+            x2 => $zero_position,
+            y2 => $bottom + $graph_height,
             color => $self->_get_color('outline.line'),
     );
   }
 
-  if ($self->_get_data_series()->{'stacked_column'}) {
-    return unless $self->_draw_stacked_columns();
-  }
-  if ($self->_get_data_series()->{'column'}) {
-    return unless $self->_draw_columns();
-  }
-  if ($self->_get_data_series()->{'line'}) {
-    return unless $self->_draw_lines();
+  if ($self->_get_data_series()->{'bar'}) {
+    $self->_draw_bars();
   }
 
-  if ($self->_get_y_tics()) {
-    $self->_draw_y_tics();
+  if ($self->_get_x_tics()) {
+    $self->_draw_x_tics();
   }
   if ($self->_get_labels()) {
-    $self->_draw_x_tics();
+    $self->_draw_y_tics();
   }
 
   return $self->_get_image();
@@ -259,55 +206,13 @@ sub _get_data_range {
   my $min_value = 0;
   my $column_count = 0;
 
-  my ($sc_min, $sc_max, $sc_cols) = $self->_get_stacked_column_range();
-  my ($c_min, $c_max, $c_cols) = $self->_get_column_range();
-  my ($l_min, $l_max, $l_cols) = $self->_get_line_range();
+  my ($b_min, $b_max, $b_cols) = $self->_get_bar_range();
 
-  # These are side by side...
-  $sc_cols += $c_cols;
-
-  $min_value = $self->_min(STARTING_MIN_VALUE, $sc_min, $c_min, $l_min);
-  $max_value = $self->_max(0, $sc_max, $c_max, $l_max);
-
-  my $config_min = $self->_get_number('y_min');
-  my $config_max = $self->_get_number('y_max');
-
-  if (defined $config_max && $config_max < $max_value) {
-    $config_max = undef;
-  }
-  if (defined $config_min && $config_min > $min_value) {
-    $config_min = undef;
-  }
-
-  my $range_padding = $self->_get_number('range_padding');
-  if (defined $config_min) {
-    $min_value = $config_min;
-  }
-  else {
-    if ($min_value > 0) {
-      $min_value = 0;
-    }
-    if ($range_padding && $min_value < 0) {
-      my $difference = $min_value * $range_padding / 100;
-      if ($min_value < -1 && $difference > -1) {
-        $difference = -1;
-      }
-      $min_value += $difference;
-    }
-  }
-  if (defined $config_max) {
-    $max_value = $config_max;
-  }
-  else {
-    if ($range_padding && $max_value > 0) {
-      my $difference = $max_value * $range_padding / 100;
-      if ($max_value > 1 && $difference < 1) {
-        $difference = 1;
-      }
-      $max_value += $difference;
-    }
-  }
-  $column_count = $self->_max(0, $sc_cols, $l_cols);
+  $min_value = $b_min;
+  $max_value = $b_max;
+  $column_count = $b_cols;
+#  $min_value = $self->_min(STARTING_MIN_VALUE, $c_min, $l_min);
+#  $max_value = $self->_max(0, $sc_max, $c_max, $l_max);
 
   if ($self->_get_number('automatic_axis')) {
     # In case this was set via a style, and not by the api method
@@ -323,7 +228,7 @@ sub _get_data_range {
     $min_value = $axis->bottom;
     my $ticks     = $axis->ticks;
     # The +1 is there because we have the bottom tick as well
-    $self->set_y_tics($ticks+1);
+    $self->set_x_tics($ticks+1);
   }
 
   $self->_set_max_value($max_value);
@@ -355,36 +260,10 @@ sub _max {
   return $min;
 }
 
-sub _get_line_range {
-  my $self = shift;
-  my $series = $self->_get_data_series()->{'line'};
-  return (undef, undef, 0) unless $series;
-
-  my $max_value = 0;
-  my $min_value = STARTING_MIN_VALUE;
-  my $column_count = 0;
-
-  my @series = @{$series};
-  foreach my $series (@series) {
-    my @data = @{$series->{'data'}};
-
-    if (scalar @data > $column_count) {
-      $column_count = scalar @data;
-    }
-
-    foreach my $value (@data) {
-      if ($value > $max_value) { $max_value = $value; }
-      if ($value < $min_value) { $min_value = $value; }
-    }
-  }
-
-  return ($min_value, $max_value, $column_count);
-}
-
-sub _get_column_range {
+sub _get_bar_range {
   my $self = shift;
 
-  my $series = $self->_get_data_series()->{'column'};
+  my $series = $self->_get_data_series()->{'bar'};
   return (undef, undef, 0) unless $series;
 
   my $max_value = 0;
@@ -405,44 +284,6 @@ sub _get_column_range {
   return ($min_value, $max_value, $column_count);
 }
 
-sub _get_stacked_column_range {
-  my $self = shift;
-
-  my $max_value = 0;
-  my $min_value = STARTING_MIN_VALUE;
-  my $column_count = 0;
-
-  return (undef, undef, 0) unless $self->_get_data_series()->{'stacked_column'};
-  my @series = @{$self->_get_data_series()->{'stacked_column'}};
-
-  my @max_entries;
-  my @min_entries;
-  for (my $i = scalar @series - 1; $i >= 0; $i--) {
-    my $series = $series[$i];
-    my $data = $series->{'data'};
-
-    for (my $i = 0; $i < scalar @$data; $i++) {
-      my $value = 0;
-      if ($data->[$i] > 0) {
-        $value = $data->[$i] + ($max_entries[$i] || 0);
-        $data->[$i] = $value;
-        $max_entries[$i] = $value;
-      }
-      elsif ($data->[$i] < 0) {
-        $value = $data->[$i] + ($min_entries[$i] || 0);
-        $data->[$i] = $value;
-        $min_entries[$i] = $value;
-      }
-      if ($value > $max_value) { $max_value = $value; }
-      if ($value < $min_value) { $min_value = $value; }
-    }
-    if (scalar @$data > $column_count) {
-      $column_count = scalar @$data;
-    }
-  }
-
-  return ($min_value, $max_value, $column_count);
-}
 
 sub _draw_legend {
   my $self = shift;
@@ -451,13 +292,7 @@ sub _draw_legend {
 
   my @labels;
   my $img = $self->_get_image();
-  if (my $series = $self->_get_data_series()->{'stacked_column'}) {
-    push @labels, map { $_->{'series_name'} } @$series;
-  }
-  if (my $series = $self->_get_data_series()->{'column'}) {
-    push @labels, map { $_->{'series_name'} } @$series;
-  }
-  if (my $series = $self->_get_data_series()->{'line'}) {
+  if (my $series = $self->_get_data_series()->{'bar'}) {
     push @labels, map { $_->{'series_name'} } @$series;
   }
 
@@ -547,7 +382,7 @@ sub _draw_lines {
   }
 
   $self->_set_series_counter($series_counter);
-  return 1;
+  return;
 }
 
 sub _line_marker {
@@ -620,7 +455,7 @@ sub _draw_line_marker {
   }
 }
 
-sub _draw_columns {
+sub _draw_bars {
   my $self = shift;
   my $style = $self->{'_style'};
 
@@ -640,11 +475,12 @@ sub _draw_columns {
 
 
   my $graph_box = $self->_get_graph_box();
-  my $left = $graph_box->[0] + 1;
-  my $bottom = $graph_box->[1];
-  my $zero_position =  int($bottom + $graph_height - (-1*$min_value / $value_range) * ($graph_height -1));
+  my $bottom = $graph_box->[1] + 1;
+  my $left  = $graph_box->[0];
 
-  my $bar_width = int($graph_width / $column_count - 1);
+  my $zero_position =  int($left + (-1*$min_value / $value_range) * ($graph_width-1));
+
+  my $bar_height = int($graph_height / $column_count - 1);
 
   my $outline_color;
   if ($style->{'features'}{'outline'}) {
@@ -652,15 +488,11 @@ sub _draw_columns {
   }
 
   my $series_counter = $self->_get_series_counter() || 0;
-  my $col_series = $self->_get_data_series()->{'column'};
-  my $column_padding_percent = $self->_get_number('column_padding') || 0;
-  my $column_padding = int($column_padding_percent * $bar_width / 100);
+  my $col_series = $self->_get_data_series()->{'bar'};
+  my $column_padding = $self->_get_number('column_padding') || 0;
 
   # This tracks the series we're in relative to the starting series - this way colors stay accurate, but the columns don't start out too far to the right.
   my $column_series = 0;
-
-  # If there are stacked columns, non-stacked columns need to start one to the right of where they would otherwise
-  my $has_stacked_columns = (defined $self->_get_data_series()->{'stacked_column'} ? 1 : 0);
 
   for (my $series_pos = 0; $series_pos < scalar @$col_series; $series_pos++) {
     my $series = $col_series->[$series_pos];
@@ -668,27 +500,28 @@ sub _draw_columns {
     my $data_size = scalar @data;
     my $color = $self->_data_color($series_counter);
     for (my $i = 0; $i < $data_size; $i++) {
-      my $x1 = int($left + $bar_width * (scalar @$col_series * $i + $series_pos)) + scalar @$col_series * $i + $series_pos + ($column_padding / 2);
-      if ($has_stacked_columns) {
-        $x1 += ($i + 1) * $bar_width + $i + 1;
-      }
-      my $x2 = $x1 + $bar_width - $column_padding;
 
-      my $y1 = int($bottom + ($value_range - $data[$i] + $min_value)/$value_range * $graph_height);
+      my $y1 = int($bottom + $bar_height * (scalar @$col_series * $i + $series_pos)) + scalar @$col_series * $i + $series_pos + ($column_padding / 2);
+
+      my $y2 = $y1 + $bar_height - $column_padding;
+
+      my $x1 = int($left - ($min_value - $data[$i]) / $value_range * $graph_width);
 
       my $color = $self->_data_color($series_counter);
 
     #  my @fill = $self->_data_fill($series_counter, [$x1, $y1, $x2, $zero_position]);
       if ($data[$i] > 0) {
-        $img->box(xmin => $x1, xmax => $x2, ymin => $y1, ymax => $zero_position-1, color => $color, filled => 1);
+        $img->box(xmax => $x1, xmin => $zero_position+1, ymin => $y1, ymax => $y2, color => $color, filled => 1);
         if ($style->{'features'}{'outline'}) {
-          $img->box(xmin => $x1, xmax => $x2, ymin => $y1, ymax => $zero_position, color => $outline_color);
+          $img->box(xmax => $x1, xmin => $zero_position, ymin => $y1, ymax => $y2, color => $outline_color);
         }
       }
+      elsif ($data[$i] == 0) {
+      }
       else {
-        $img->box(xmin => $x1, xmax => $x2, ymin => $zero_position+1, ymax => $y1, color => $color, filled => 1);
+        $img->box(xmax  => $zero_position , xmin => $x1, ymin => $y1, ymax => $y2, color => $color, filled => 1);
         if ($style->{'features'}{'outline'}) {
-          $img->box(xmin => $x1, xmax => $x2, ymin => $zero_position+1, ymax => $y1+1, color => $outline_color);
+          $img->box(xmax => $zero_position, xmin => $x1, ymin => $y1, ymax => $y2, color => $outline_color);
         }
       }
     }
@@ -697,80 +530,7 @@ sub _draw_columns {
     $column_series++;
   }
   $self->_set_series_counter($series_counter);
-  return 1;
-}
-
-sub _draw_stacked_columns {
-  my $self = shift;
-  my $style = $self->{'_style'};
-
-  my $img = $self->_get_image();
-
-  my $max_value = $self->_get_max_value();
-  my $min_value = $self->_get_min_value();
-  my $column_count = $self->_get_column_count();
-  my $value_range = $max_value - $min_value;
-
-  my $graph_box = $self->_get_graph_box();
-  my $left = $graph_box->[0] + 1;
-  my $bottom = $graph_box->[1];
-
-  my $graph_width = $self->_get_number('graph_width');
-  my $graph_height = $self->_get_number('graph_height');
-
-  my $bar_width = int($graph_width / $column_count -1);
-  my $column_series = 0;
-  if (my $column_series_data = $self->_get_data_series()->{'column'}) {
-    $column_series = (scalar @$column_series_data);
-  }
-  $column_series++;
-
-  my $column_padding_percent = $self->_get_number('column_padding') || 0;
-  if ($column_padding_percent < 0) {
-    return $self->_error("Column padding less than 0");
-  }
-  if ($column_padding_percent > 100) {
-    return $self->_error("Column padding greater than 0");
-  }
-  my $column_padding = int($column_padding_percent * $bar_width / 100);
-
-  my $outline_color;
-  if ($style->{'features'}{'outline'}) {
-    $outline_color = $self->_get_color('outline.line');
-  }
-
-  my $zero_position =  $bottom + $graph_height - (-1*$min_value / $value_range) * ($graph_height -1);
-  my $col_series = $self->_get_data_series()->{'stacked_column'};
-  my $series_counter = $self->_get_series_counter() || 0;
-
-  foreach my $series (@$col_series) {
-    my @data = @{$series->{'data'}};
-    my $data_size = scalar @data;
-    my $color = $self->_data_color($series_counter);
-    for (my $i = 0; $i < $data_size; $i++) {
-      my $x1 = int($left + $bar_width * ($column_series * $i)) + $column_series * $i + ($column_padding / 2);
-      my $x2 = $x1 + $bar_width - $column_padding;
-
-      my $y1 = int($bottom + ($value_range - $data[$i] + $min_value)/$value_range * $graph_height);
-
-      if ($data[$i] > 0) {
-        $img->box(xmin => $x1, xmax => $x2, ymin => $y1, ymax => $zero_position-1, color => $color, filled => 1);
-        if ($style->{'features'}{'outline'}) {
-          $img->box(xmin => $x1, xmax => $x2, ymin => $y1, ymax => $zero_position, color => $outline_color);
-        }
-      }
-      else {
-        $img->box(xmin => $x1, xmax => $x2, ymin => $zero_position+1, ymax => $y1, color => $color, filled => 1);
-        if ($style->{'features'}{'outline'}) {
-          $img->box(xmin => $x1, xmax => $x2, ymin => $zero_position+1, ymax => $y1+1, color => $outline_color);
-        }
-      }
-    }
-
-    $series_counter++;
-  }
-  $self->_set_series_counter($series_counter);
-  return 1;
+  return;
 }
 
 sub _add_data_series {
@@ -793,14 +553,14 @@ sub _add_data_series {
 
 =over
 
-=item show_horizontal_gridlines()
+=item show_vertical_gridlines()
 
-Shows horizontal gridlines at the y-tics.
+Shows vertical gridlines at the y-tics.
 
 =cut
 
-sub show_horizontal_gridlines {
-    $_[0]->{'custom_style'}->{'horizontal_gridlines'} = 1;
+sub show_vertical_gridlines {
+    $_[0]->{'custom_style'}->{'vertical_gridlines'} = 1;
 }
 
 =item use_automatic_axis()
@@ -819,18 +579,18 @@ sub use_automatic_axis {
 }
 
 
-=item set_y_tics($count)
+=item set_x_tics($count)
 
-Set the number of Y tics to use.  Their value and position will be determined by the data range.
+Set the number of X tics to use.  Their value and position will be determined by the data range.
 
 =cut
 
-sub set_y_tics {
-  $_[0]->{'y_tics'} = $_[1];
+sub set_x_tics {
+  $_[0]->{'x_tics'} = $_[1];
 }
 
-sub _get_y_tics {
-  return $_[0]->{'y_tics'} || 0;
+sub _get_x_tics {
+  return $_[0]->{'x_tics'} || 0;
 }
 
 sub _remove_tics_from_chart_box {
@@ -854,116 +614,101 @@ sub _remove_tics_from_chart_box {
 
 }
 
-sub _get_y_tic_width{
+sub _get_y_tic_width {
   my $self = shift;
-  my $min = $self->_get_min_value();
-  my $max = $self->_get_max_value();
-  my $tic_count = $self->_get_y_tics();
 
-  my $interval = ($max - $min) / ($tic_count - 1);
-
-  my %text_info = $self->_text_style('legend')
-    or return;
-
+  my $labels = $self->_get_labels();
   my $max_width = 0;
-  for my $count (0 .. $tic_count - 1) {
-    my $value = sprintf("%.2f", ($count*$interval)+$min);
-
-    my @box = $self->_text_bbox($value, 'legend');
-    my $width = $box[2] - $box[0];
-
-    # For the tic width
+  foreach my $label (@$labels) {
+    my @box = $self->_text_bbox($label, 'legend');
+    my $width = $box[2] + 5;
+    # For the tic itself...
     $width += 10;
     if ($width > $max_width) {
       $max_width = $width;
     }
   }
-
   return $max_width;
 }
 
 sub _get_x_tic_height {
   my $self = shift;
 
-  my $labels = $self->_get_labels();
-
-  if (!$labels) {
-        return;
-  }
-
-  my $tic_count = (scalar @$labels) - 1;
-
-  my %text_info = $self->_text_style('legend')
-    or return;
-
-  my $max_height = 0;
-  for my $count (0 .. $tic_count) {
-    my $label = $labels->[$count];
-
-    my @box = $self->_text_bbox($label, 'legend');
-
-    my $height = $box[3] - $box[1];
-
-    # Padding + the tic
-    $height += 10;
-    if ($height > $max_height) {
-      $max_height = $height;
-    }
-  }
-
-  return $max_height;
-}
-
-sub _draw_y_tics {
-  my $self = shift;
   my $min = $self->_get_min_value();
   my $max = $self->_get_max_value();
-  my $tic_count = $self->_get_y_tics();
-
-  my $img = $self->_get_image();
-  my $graph_box = $self->_get_graph_box();
-  my $image_box = $self->_get_image_box();
+  my $tic_count = $self->_get_x_tics();
 
   my $interval = ($max - $min) / ($tic_count - 1);
 
   my %text_info = $self->_text_style('legend')
     or return;
 
-  my $show_gridlines = $self->_get_number('horizontal_gridlines');
-  my $tic_distance = int(($graph_box->[3] - $graph_box->[1]) / ($tic_count - 1));
+  my $max_height = 0;
   for my $count (0 .. $tic_count - 1) {
+    my $value = sprintf("%.2f", ($count*$interval)+$min);
+
+    my @box = $self->_text_bbox($value, 'legend');
+    my $height = $box[3] - $box[1];
+
+    # For the tic width
+    $height += 10;
+    if ($height > $max_height) {
+      $max_height = $height;
+    }
+  }
+
+
+  return $max_height;
+}
+
+sub _draw_y_tics {
+  my $self = shift;
+
+  my $img = $self->_get_image();
+  my $graph_box = $self->_get_graph_box();
+  my $image_box = $self->_get_image_box();
+
+  my $labels = $self->_get_labels();
+
+  my $tic_count = (scalar @$labels) - 1;
+
+  my $has_columns = defined $self->_get_data_series()->{'bar'};
+
+  # If we have columns, we want the x-ticks to show up in the middle of the column, not on the left edge
+  my $denominator = $tic_count;
+  if ($has_columns) {
+    $denominator ++;
+  }
+  my $tic_distance = ($graph_box->[3] - $graph_box->[1]) / ($denominator);
+  my %text_info = $self->_text_style('legend')
+    or return;
+
+  for my $count (0 .. $tic_count) {
+    my $label = $labels->[$count];
+
     my $x1 = $graph_box->[0] - 5;
     my $x2 = $graph_box->[0] + 5;
-    my $y1 = $graph_box->[3] - ($count * $tic_distance);
 
-    my $value = ($count*$interval)+$min;
-    if ($interval < 1 || ($value != int($value))) {
-        $value = sprintf("%.2f", $value);
+    my $y1 = $graph_box->[1] + ($tic_distance * $count);
+
+    if ($has_columns) {
+      $y1 += $tic_distance / 2;
     }
 
-    my @box = $self->_text_bbox($value, 'legend')
-      or return;
-
     $img->line(x1 => $x1, x2 => $x2, y1 => $y1, y2 => $y1, aa => 1, color => '000000');
+
+    my @box = $self->_text_bbox($label, 'legend')
+      or return;
 
     my $width = $box[2];
     my $height = $box[3];
 
     $img->string(%text_info,
-                 x    => ($x1 - $width - 3),
+                 x    => ($x1 - ($width + 5)),
                  y    => ($y1 + ($height / 2)),
-                 text => $value
+                 text => $label
                 );
 
-    if ($show_gridlines) {
-      # XXX - line styles!
-      for (my $i = $graph_box->[0]; $i < $graph_box->[2]; $i += 6) {
-        my $x1 = $i;
-        my $x2 = $i + 2;
-        if ($x2 > $graph_box->[2]) { $x2 = $graph_box->[2]; }
-        $img->line(x1 => $x1, x2 => $x2, y1 => $y1, y2 => $y1, aa => 1, color => '000000');
-      }
-    }
   }
 
 }
@@ -975,34 +720,29 @@ sub _draw_x_tics {
   my $graph_box = $self->_get_graph_box();
   my $image_box = $self->_get_image_box();
 
-  my $labels = $self->_get_labels();
-
-  my $tic_count = (scalar @$labels) - 1;
-
-  my $has_columns = (defined $self->_get_data_series()->{'column'} || defined $self->_get_data_series()->{'stacked_column'});
+  my $tic_count = $self->_get_x_tics();
+  my $min = $self->_get_min_value();
+  my $max = $self->_get_max_value();
+  my $interval = ($max - $min) / ($tic_count - 1);
 
   # If we have columns, we want the x-ticks to show up in the middle of the column, not on the left edge
-  my $denominator = $tic_count;
-  if ($has_columns) {
-    $denominator ++;
-  }
-  my $tic_distance = ($graph_box->[2] - $graph_box->[0]) / ($denominator);
+  my $tic_distance = ($graph_box->[2] - $graph_box->[0]) / ($tic_count -1);
+
   my %text_info = $self->_text_style('legend')
     or return;
 
-  for my $count (0 .. $tic_count) {
-    my $label = $labels->[$count];
+  my $show_gridlines = $self->_get_number('vertical_gridlines');
+  for my $count (0 .. $tic_count-1) {
     my $x1 = $graph_box->[0] + ($tic_distance * $count);
 
-    if ($has_columns) {
-      $x1 += $tic_distance / 2;
-    }
     my $y1 = $graph_box->[3] + 5;
     my $y2 = $graph_box->[3] - 5;
 
+    my $value = ($count*$interval)+$min;
+
     $img->line(x1 => $x1, x2 => $x1, y1 => $y1, y2 => $y2, aa => 1, color => '000000');
 
-    my @box = $self->_text_bbox($label, 'legend')
+    my @box = $self->_text_bbox($value, 'legend')
       or return;
 
     my $width = $box[2];
@@ -1010,10 +750,19 @@ sub _draw_x_tics {
 
     $img->string(%text_info,
                  x    => ($x1 - ($width / 2)),
-                 y    => ($y1 + ($height + 5)),
-                 text => $label
+                 y    => ($y1 + $height + 5),
+                 text => $value
                 );
 
+    if ($show_gridlines) {
+      # XXX - line styles!
+      for (my $i = $graph_box->[1]; $i < $graph_box->[3]; $i += 6) {
+        my $y1 = $i;
+        my $y2 = $i + 2;
+        if ($y2 > $graph_box->[3]) { $y2 = $graph_box->[3]; }
+        $img->line(x1 => $x1, x2 => $x1, y1 => $y1, y2 => $y2, aa => 1, color => '000000');
+      }
+    }
   }
 }
 
@@ -1052,3 +801,4 @@ sub _get_graph_box      { return $_[0]->{'graph_box'} }
 sub _get_series_counter { return $_[0]->{'series_counter'} }
 
 1;
+
