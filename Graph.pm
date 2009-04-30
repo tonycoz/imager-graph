@@ -196,7 +196,7 @@ the value can be a hashref containing sub values.
 The C<style> parameter will selects a basic color set, and possibly
 sets other related parameters.  See L</"STYLES">.
 
- my $font = Imager::Font->new(file => 'Im_ugly.ttf');
+ my $font = Imager::Font->new(file => 'ImUgly.ttf');
  my $img = $chart->draw(
                  data    => \@data,
                  font    => $font,
