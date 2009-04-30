@@ -172,7 +172,7 @@ sub _get_style {
 
 =item error
 
-Returns an error message.  Only value if the draw() method returns false.
+Returns an error message.  Only valid if the draw() method returns false.
 
 =cut
 
