@@ -498,7 +498,6 @@ sub _draw_bars {
     my $series = $col_series->[$series_pos];
     my @data = @{$series->{'data'}};
     my $data_size = scalar @data;
-    my $color = $self->_data_color($series_counter);
     for (my $i = 0; $i < $data_size; $i++) {
 
       my $y1 = int($bottom + $bar_height * (scalar @$col_series * $i + $series_pos)) + scalar @$col_series * $i + $series_pos + ($column_padding / 2);
@@ -509,9 +508,9 @@ sub _draw_bars {
 
       my $color = $self->_data_color($series_counter);
 
-    #  my @fill = $self->_data_fill($series_counter, [$x1, $y1, $x2, $zero_position]);
       if ($data[$i] > 0) {
-        $img->box(xmax => $x1, xmin => $zero_position+1, ymin => $y1, ymax => $y2, color => $color, filled => 1);
+        my @fill = $self->_data_fill($series_counter, [$zero_position+1, $y1, $x1, $y2]);
+        $img->box(xmax => $x1, xmin => $zero_position+1, ymin => $y1, ymax => $y2, @fill);
         if ($style->{'features'}{'outline'}) {
           $img->box(xmax => $x1, xmin => $zero_position, ymin => $y1, ymax => $y2, color => $outline_color);
         }
@@ -519,7 +518,8 @@ sub _draw_bars {
       elsif ($data[$i] == 0) {
       }
       else {
-        $img->box(xmax  => $zero_position , xmin => $x1, ymin => $y1, ymax => $y2, color => $color, filled => 1);
+        my @fill = $self->_data_fill($series_counter, [$x1, $y1, $zero_position, $y2]);
+        $img->box(xmax  => $zero_position , xmin => $x1, ymin => $y1, ymax => $y2, @fill);
         if ($style->{'features'}{'outline'}) {
           $img->box(xmax => $zero_position, xmin => $x1, ymin => $y1, ymax => $y2, color => $outline_color);
         }

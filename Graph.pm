@@ -1438,49 +1438,49 @@ $styles{'ocean'} = {
               xa_ratio => 0, ya_ratio=>0, xb_ratio=>1.0, yb_ratio=>1.0,
               segments => Imager::Fountain->simple(
                                                     positions=>[0, 1],
-                                                    colors=>[ NC('FFFFFF'), NC('E6E2AF') ]),
+                                                    colors=>[ NC('EFEDCF'), NC('E6E2AF') ]),
             },
              {
               fountain =>'linear',
               xa_ratio => 0, ya_ratio=>0, xb_ratio=>1.0, yb_ratio=>1.0,
               segments => Imager::Fountain->simple(
                                                     positions=>[0, 1],
-                                                    colors=>[ NC('FFFFFF'), NC('A7A37E') ]),
+                                                    colors=>[ NC('DCD7AB'), NC('A7A37E') ]),
             },
              {
               fountain =>'linear',
               xa_ratio => 0, ya_ratio=>0, xb_ratio=>1.0, yb_ratio=>1.0,
               segments => Imager::Fountain->simple(
                                                     positions=>[0, 1],
-                                                    colors=>[ NC('FFFFFF'), NC('80B4A2') ]),
+                                                    colors=>[ NC('B2E5D4'), NC('80B4A2') ]),
             },
             {
               fountain =>'linear',
               xa_ratio => 0, ya_ratio=>0, xb_ratio=>1.0, yb_ratio=>1.0,
               segments => Imager::Fountain->simple(
                                                     positions=>[0, 1],
-                                                    colors=>[ NC('FFFFFF'), NC('046380') ]),
+                                                    colors=>[ NC('7aaab9'), NC('046380') ]),
             },
             {
               fountain =>'linear',
               xa_ratio => 0, ya_ratio=>0, xb_ratio=>1.0, yb_ratio=>1.0,
               segments => Imager::Fountain->simple(
                                                     positions=>[0, 1],
-                                                    colors=>[ NC('FFFFFF'), NC('877EA7') ]),
+                                                    colors=>[ NC('c3b8e9'), NC('877EA7') ]),
             },
             {
               fountain =>'linear',
               xa_ratio => 0, ya_ratio=>0, xb_ratio=>1.0, yb_ratio=>1.0,
               segments => Imager::Fountain->simple(
                                                     positions=>[0, 1],
-                                                    colors=>[ NC('FFFFFF'), NC('67A35E') ]),
+                                                    colors=>[ NC('A3DF9A'), NC('67A35E') ]),
             },
             {
               fountain =>'linear',
               xa_ratio => 0, ya_ratio=>0, xb_ratio=>1.0, yb_ratio=>1.0,
               segments => Imager::Fountain->simple(
                                                     positions=>[0, 1],
-                                                    colors=>[ NC('FFFFFF'), NC('B4726F') ]),
+                                                    colors=>[ NC('E19C98'), NC('B4726F') ]),
             },
     ],
     colors  => [
@@ -1492,6 +1492,22 @@ $styles{'ocean'} = {
     features=>{ dropshadow=>1 },
 
 };
+
+$styles{'ocean_flat'} = {
+    fills=>
+    [
+     qw(E6E2AF A7A37E 80B4A2 046380 877EA7 67A35E B4726F)
+    ],
+    colors  => [
+     qw(E6E2AF A7A37E 80B4A2 046380 877EA7 67A35E B4726F)
+    ],
+    fg=>'000000',
+    negative_bg=>'EEEEEE',
+    bg=>'FFFFFF',
+    features=>{ dropshadow=>1 },
+
+};
+
 
 =item $self->_style_setup(\%opts)
 

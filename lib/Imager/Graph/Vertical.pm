@@ -666,7 +666,6 @@ sub _draw_columns {
     my $series = $col_series->[$series_pos];
     my @data = @{$series->{'data'}};
     my $data_size = scalar @data;
-    my $color = $self->_data_color($series_counter);
     for (my $i = 0; $i < $data_size; $i++) {
       my $x1 = int($left + $bar_width * (scalar @$col_series * $i + $series_pos)) + scalar @$col_series * $i + $series_pos + ($column_padding / 2);
       if ($has_stacked_columns) {
@@ -678,15 +677,16 @@ sub _draw_columns {
 
       my $color = $self->_data_color($series_counter);
 
-    #  my @fill = $self->_data_fill($series_counter, [$x1, $y1, $x2, $zero_position]);
       if ($data[$i] > 0) {
-        $img->box(xmin => $x1, xmax => $x2, ymin => $y1, ymax => $zero_position-1, color => $color, filled => 1);
+        my @fill = $self->_data_fill($series_counter, [$x1, $y1, $x2, $zero_position-1]);
+        $img->box(xmin => $x1, xmax => $x2, ymin => $y1, ymax => $zero_position-1, @fill);
         if ($style->{'features'}{'outline'}) {
           $img->box(xmin => $x1, xmax => $x2, ymin => $y1, ymax => $zero_position, color => $outline_color);
         }
       }
       else {
-        $img->box(xmin => $x1, xmax => $x2, ymin => $zero_position+1, ymax => $y1, color => $color, filled => 1);
+        my @fill = $self->_data_fill($series_counter, [$x1, $zero_position+1, $x2, $y1]);
+        $img->box(xmin => $x1, xmax => $x2, ymin => $zero_position+1, ymax => $y1, @fill);
         if ($style->{'features'}{'outline'}) {
           $img->box(xmin => $x1, xmax => $x2, ymin => $zero_position+1, ymax => $y1+1, color => $outline_color);
         }
@@ -746,7 +746,6 @@ sub _draw_stacked_columns {
   foreach my $series (@$col_series) {
     my @data = @{$series->{'data'}};
     my $data_size = scalar @data;
-    my $color = $self->_data_color($series_counter);
     for (my $i = 0; $i < $data_size; $i++) {
       my $x1 = int($left + $bar_width * ($column_series * $i)) + $column_series * $i + ($column_padding / 2);
       my $x2 = $x1 + $bar_width - $column_padding;
@@ -754,13 +753,15 @@ sub _draw_stacked_columns {
       my $y1 = int($bottom + ($value_range - $data[$i] + $min_value)/$value_range * $graph_height);
 
       if ($data[$i] > 0) {
-        $img->box(xmin => $x1, xmax => $x2, ymin => $y1, ymax => $zero_position-1, color => $color, filled => 1);
+        my @fill = $self->_data_fill($series_counter, [$x1, $y1, $x2, $zero_position-1]);
+        $img->box(xmin => $x1, xmax => $x2, ymin => $y1, ymax => $zero_position-1, @fill);
         if ($style->{'features'}{'outline'}) {
           $img->box(xmin => $x1, xmax => $x2, ymin => $y1, ymax => $zero_position, color => $outline_color);
         }
       }
       else {
-        $img->box(xmin => $x1, xmax => $x2, ymin => $zero_position+1, ymax => $y1, color => $color, filled => 1);
+        my @fill = $self->_data_fill($series_counter, [$x1, $zero_position+1, $x2, $y1]);
+        $img->box(xmin => $x1, xmax => $x2, ymin => $zero_position+1, ymax => $y1, @fill);
         if ($style->{'features'}{'outline'}) {
           $img->box(xmin => $x1, xmax => $x2, ymin => $zero_position+1, ymax => $y1+1, color => $outline_color);
         }
