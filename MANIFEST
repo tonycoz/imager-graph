@@ -1,7 +1,9 @@
 Changes				A list of changes :)
 Graph.pm
 ImUgly.ttf			A moderately ugly font
+lib/Imager/Graph/Bar.pm
 lib/Imager/Graph/Column.pm
+lib/Imager/Graph/Horizontal.pm
 lib/Imager/Graph/Line.pm
 lib/Imager/Graph/Pie.pm
 lib/Imager/Graph/StackedColumn.pm
@@ -9,7 +11,6 @@ lib/Imager/Graph/Util.pm
 lib/Imager/Graph/Vertical.pm
 Makefile.PL
 MANIFEST
-MANIFEST.bak
 MANIFEST.SKIP
 README
 t/lib/Imager/Font/Test.pm
