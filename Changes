@@ -1,5 +1,32 @@
 Revision history for Perl extension Imager::Graph.
 
+Imager-Graph 0.07 - 21 May 2009
+=================
+
+Lots of cool changes from Patrick Michaud:
+
+ - added Bar, Column. StackedColumn and Line charts.
+   https://rt.cpan.org/Ticket/Display.html?id=5 [*]
+
+ - new ocean style
+
+ - new ocean_flat style
+
+ - methods to set chart style attributes, in addition to the style
+   parameters passed to draw().
+
+Bug fixes:
+
+ - missing a font parameter when we have a chart with text no longer
+   results in an exception, but in a false returned and a message in
+   error() as with other errors.
+   https://rt.cpan.org/Ticket/Display.html?id=2872
+
+ - the mono style now disables anti-aliasing by default
+
+[*] this was the oldest open bug on rt.cpan.org, now #7 is, still an
+Imager-Graph issue
+
 Imager-Graph 0.06 - 21 April 2008
 =================
 
