@@ -172,12 +172,12 @@ sub draw {
   my $graph_width = $chart_box[2] - $chart_box[0];
   my $graph_height = $chart_box[3] - $chart_box[1];
 
-  my $col_width = int(($graph_width - 1) / $column_count) -1;
+  my $col_width = ($graph_width - 1) / $column_count;
   $graph_width = $col_width * $column_count + 1;
 
   my $tic_count = $self->_get_y_tics();
-  my $tic_distance = int(($graph_height-1) / ($tic_count - 1));
-  $graph_height = $tic_distance * ($tic_count - 1);
+  my $tic_distance = ($graph_height-1) / ($tic_count - 1);
+  $graph_height = int($tic_distance * ($tic_count - 1));
 
   my $bottom = $chart_box[1];
   my $left   = $chart_box[0];
@@ -502,7 +502,6 @@ sub _draw_lines {
   my $bottom = $graph_box->[1];
 
   my $zero_position =  $bottom + $graph_height - (-1*$min_value / $value_range) * ($graph_height - 1);
-
 
   my $line_aa = $self->_get_number("lineaa");
   foreach my $series (@$line_series) {
@@ -930,12 +929,13 @@ sub _draw_y_tics {
   my %text_info = $self->_text_style('legend')
     or return;
 
+  my $line_style = $self->_get_color('outline.line');
   my $show_gridlines = $self->_get_number('horizontal_gridlines');
-  my $tic_distance = int(($graph_box->[3] - $graph_box->[1]) / ($tic_count - 1));
+  my $tic_distance = ($graph_box->[3] - $graph_box->[1]) / ($tic_count - 1);
   for my $count (0 .. $tic_count - 1) {
     my $x1 = $graph_box->[0] - 5;
     my $x2 = $graph_box->[0] + 5;
-    my $y1 = $graph_box->[3] - ($count * $tic_distance);
+    my $y1 = int($graph_box->[3] - ($count * $tic_distance));
 
     my $value = ($count*$interval)+$min;
     if ($interval < 1 || ($value != int($value))) {
@@ -945,7 +945,7 @@ sub _draw_y_tics {
     my @box = $self->_text_bbox($value, 'legend')
       or return;
 
-    $img->line(x1 => $x1, x2 => $x2, y1 => $y1, y2 => $y1, aa => 1, color => '000000');
+    $img->line(x1 => $x1, x2 => $x2, y1 => $y1, y2 => $y1, aa => 1, color => $line_style);
 
     my $width = $box[2];
     my $height = $box[3];
@@ -962,7 +962,7 @@ sub _draw_y_tics {
         my $x1 = $i;
         my $x2 = $i + 2;
         if ($x2 > $graph_box->[2]) { $x2 = $graph_box->[2]; }
-        $img->line(x1 => $x1, x2 => $x2, y1 => $y1, y2 => $y1, aa => 1, color => '000000');
+        $img->line(x1 => $x1, x2 => $x2, y1 => $y1, y2 => $y1, aa => 1, color => $line_style);
       }
     }
   }
@@ -991,17 +991,40 @@ sub _draw_x_tics {
   my %text_info = $self->_text_style('legend')
     or return;
 
+  # If automatic axis is turned on, let's be selective about what labels we draw.
+  my $max_size = 0;
+  my $tic_skip = 0;
+  if ($self->_get_number('automatic_axis')) {
+    foreach my $label (@$labels) {
+      my @box = $self->_text_bbox($label, 'legend');
+      if ($box[2] > $max_size) {
+        $max_size = $box[2];
+      }
+    }
+
+    # Give the max_size some padding...
+    $max_size *= 1.2;
+
+    $tic_skip = int($max_size / $tic_distance) + 1;
+  }
+
+  my $line_style = $self->_get_color('outline.line');
+
   for my $count (0 .. $tic_count) {
+    next if ($count % ($tic_skip + 1));
     my $label = $labels->[$count];
     my $x1 = $graph_box->[0] + ($tic_distance * $count);
 
     if ($has_columns) {
       $x1 += $tic_distance / 2;
     }
+
+    $x1 = int($x1);
+
     my $y1 = $graph_box->[3] + 5;
     my $y2 = $graph_box->[3] - 5;
 
-    $img->line(x1 => $x1, x2 => $x1, y1 => $y1, y2 => $y2, aa => 1, color => '000000');
+    $img->line(x1 => $x1, x2 => $x1, y1 => $y1, y2 => $y2, aa => 1, color => $line_style);
 
     my @box = $self->_text_bbox($label, 'legend')
       or return;

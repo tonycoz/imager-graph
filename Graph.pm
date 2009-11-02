@@ -11,6 +11,7 @@ Imager::Graph - Perl extension for producing Graphs using the Imager library.
   my $chart = Imager::Graph::Sub_class->new;
   my $img = $chart->draw(data=> \@data, ...)
     or die $chart->error;
+  $img->write(file => 'image.png');
 
 =head1 DESCRIPTION
 
@@ -89,6 +90,9 @@ sub add_data_series {
   my $graph_data = $self->{'graph_data'} || [];
 
   push @$graph_data, { data => $data_ref, series_name => $series_name };
+  if (defined $series_name) {
+    push @{$self->{'labels'}}, $series_name;
+  }
 
   $self->{'graph_data'} = $graph_data;
   return;

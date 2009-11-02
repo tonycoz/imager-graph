@@ -21,6 +21,9 @@ t/t12column.t
 t/t13stacked_col.t
 t/t20api.t
 t/t21style_api.t
+t/t30many_points.t
+t/t31tic_color.t
+t/t32series_labels.t
 t/t91pod.t
 t/t93podcover.t
 testimg/t10_hlegend.png
