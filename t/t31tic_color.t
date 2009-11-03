@@ -28,7 +28,7 @@ plan tests => 4;
 #  or plan skip_all => "Cannot create font object: ",Imager->errstr,"\n";
 my $font = Imager::Font::Test->new();
 
-my @data = (1 .. 10);
+my @data = (1 .. 7);
 my @labels = qw(alpha beta gamma delta epsilon phi gi);
 
 my $line = Imager::Graph::Line->new();
@@ -45,7 +45,14 @@ my $img1 = $line->draw(outline => {line => '#FF0000'});
 ok($img1, "drawing line chart");
 
 $img1->write(file=>'testout/t31tic_color.ppm') or die "Can't save img1: ".$img1->errstr."\n";
-cmpimg($img1, 'testimg/t31tic_color.ppm', 1);
+
+eval { require Chart::Math::Axis; };
+if ($@) {
+    cmpimg($img1, 'testimg/t31tic_color.ppm', 1);
+}
+else {
+    cmpimg($img1, 'testimg/t31tic_color_CMA.ppm', 1);
+}
 
 unless (is(@warned, 0, "should be no warnings")) {
   diag($_) for @warned;
@@ -57,16 +64,10 @@ sub cmpimg {
 
   $limit ||= 10000;
 
- SKIP:
-  {
-    $Imager::formats{png}
-      or skip("No PNG support", 1);
-
-    my $cmpimg = Imager->new;
-    $cmpimg->read(file=>$file)
-      or return ok(0, "Cannot read $file: ".$cmpimg->errstr);
-    my $diff = Imager::i_img_diff($img->{IMG}, $cmpimg->{IMG});
-    cmp_ok($diff, '<', $limit, "Comparison to $file ($diff)");
-  }
+  my $cmpimg = Imager->new;
+  $cmpimg->read(file=>$file)
+    or return ok(0, "Cannot read $file: ".$cmpimg->errstr);
+  my $diff = Imager::i_img_diff($img->{IMG}, $cmpimg->{IMG});
+  cmp_ok($diff, '<', $limit, "Comparison to $file ($diff)");
 }
 

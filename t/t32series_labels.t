@@ -55,16 +55,11 @@ sub cmpimg {
 
   $limit ||= 10000;
 
- SKIP:
-  {
-    $Imager::formats{png}
-      or skip("No PNG support", 1);
+  my $cmpimg = Imager->new;
+  $cmpimg->read(file=>$file)
+    or return ok(0, "Cannot read $file: ".$cmpimg->errstr);
+  my $diff = Imager::i_img_diff($img->{IMG}, $cmpimg->{IMG});
+  cmp_ok($diff, '<', $limit, "Comparison to $file ($diff)");
 
-    my $cmpimg = Imager->new;
-    $cmpimg->read(file=>$file)
-      or return ok(0, "Cannot read $file: ".$cmpimg->errstr);
-    my $diff = Imager::i_img_diff($img->{IMG}, $cmpimg->{IMG});
-    cmp_ok($diff, '<', $limit, "Comparison to $file ($diff)");
-  }
 }
 

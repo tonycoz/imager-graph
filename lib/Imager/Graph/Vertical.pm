@@ -173,7 +173,12 @@ sub draw {
   my $graph_height = $chart_box[3] - $chart_box[1];
 
   my $col_width = ($graph_width - 1) / $column_count;
-  $graph_width = $col_width * $column_count + 1;
+  if ($col_width > 1) {
+    $graph_width = int($col_width) * $column_count + 1;
+  }
+  else {
+    $graph_width = $col_width * $column_count + 1;
+  }
 
   my $tic_count = $self->_get_y_tics();
   my $tic_distance = ($graph_height-1) / ($tic_count - 1);
@@ -852,6 +857,27 @@ sub _remove_tics_from_chart_box {
   my @y_tic_tops = ($chart_box->[0], $chart_box->[1], $chart_box->[2], $chart_box->[1] + int($tic_height / 2));
   $self->_remove_box($chart_box, \@y_tic_tops);
 
+  # Make sure that the first and last label fit
+  if (my $labels = $self->_get_labels()) {
+    if (my @box = $self->_text_bbox($labels->[0], 'legend')) {
+      my @remove_box = ($chart_box->[0],
+                        $chart_box->[1],
+                        $chart_box->[0] + int($box[2] / 2) + 1,
+                        $chart_box->[3]
+                        );
+
+      $self->_remove_box($chart_box, \@remove_box);
+    }
+    if (my @box = $self->_text_bbox($labels->[-1], 'legend')) {
+      my @remove_box = ($chart_box->[2] - int($box[2] / 2) - 1,
+                        $chart_box->[1],
+                        $chart_box->[2],
+                        $chart_box->[3]
+                        );
+
+      $self->_remove_box($chart_box, \@remove_box);
+    }
+  }
 }
 
 sub _get_y_tic_width{

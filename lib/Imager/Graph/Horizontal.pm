@@ -164,7 +164,7 @@ sub draw {
 
   my $zero_position;
   if ($value_range) {
-    $zero_position =  $left + (-1*$min_value / $value_range) * ($graph_width-1);
+    $zero_position =  $left + $graph_width + (-1*$min_value / $value_range) * ($graph_width-1);
   }
 
   if ($min_value < 0) {
@@ -208,11 +208,48 @@ sub _get_data_range {
 
   my ($b_min, $b_max, $b_cols) = $self->_get_bar_range();
 
-  $min_value = $b_min;
-  $max_value = $b_max;
+  $min_value = $self->_min(STARTING_MIN_VALUE, $b_min);
+  $max_value = $self->_max(0, $b_max);
   $column_count = $b_cols;
-#  $min_value = $self->_min(STARTING_MIN_VALUE, $c_min, $l_min);
-#  $max_value = $self->_max(0, $sc_max, $c_max, $l_max);
+
+  my $config_min = $self->_get_number('x_min');
+  my $config_max = $self->_get_number('x_max');
+
+  if (defined $config_max && $config_max < $max_value) {
+    $config_max = undef;
+  }
+  if (defined $config_min && $config_min > $min_value) {
+    $config_min = undef;
+  }
+
+  my $range_padding = $self->_get_number('range_padding');
+  if (defined $config_min) {
+    $min_value = $config_min;
+  }
+  else {
+    if ($min_value > 0) {
+      $min_value = 0;
+    }
+    if ($range_padding && $min_value < 0) {
+      my $difference = $min_value * $range_padding / 100;
+      if ($min_value < -1 && $difference > -1) {
+        $difference = -1;
+      }
+      $min_value += $difference;
+    }
+  }
+  if (defined $config_max) {
+    $max_value = $config_max;
+  }
+  else {
+    if ($range_padding && $max_value > 0) {
+      my $difference = $max_value * $range_padding / 100;
+      if ($max_value > 1 && $difference < 1) {
+        $difference = 1;
+      }
+      $max_value += $difference;
+    }
+  }
 
   if ($self->_get_number('automatic_axis')) {
     # In case this was set via a style, and not by the api method
@@ -611,6 +648,17 @@ sub _remove_tics_from_chart_box {
   # If there's no title, the y-tics will be part off-screen.  Half of the x-tic height should be more than sufficient.
   my @y_tic_tops = ($chart_box->[0], $chart_box->[1], $chart_box->[2], $chart_box->[1] + int($tic_height / 2));
   $self->_remove_box($chart_box, \@y_tic_tops);
+
+    if (my @box = $self->_text_bbox($self->_get_max_value(), 'legend')) {
+      my @remove_box = ($chart_box->[2] - int($box[2] / 2) - 1,
+                        $chart_box->[1],
+                        $chart_box->[2],
+                        $chart_box->[3]
+                        );
+
+      $self->_remove_box($chart_box, \@remove_box);
+    }
+
 
 }
 

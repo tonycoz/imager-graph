@@ -1,5 +1,5 @@
-#!perl -w
 use strict;
+
 use Imager::Graph::Line;
 use lib 't/lib';
 use Imager::Font::Test;
@@ -21,27 +21,23 @@ local $SIG{__WARN__} =
 
 use Imager qw(:handy);
 
-plan tests => 4;
+plan tests => 2;
 
-#my $fontfile = 'ImUgly.ttf';
-#my $font = Imager::Font->new(file=>$fontfile, type => 'ft2', aa=>1)
-#  or plan skip_all => "Cannot create font object: ",Imager->errstr,"\n";
+
 my $font = Imager::Font::Test->new();
 
-my @data = (1 .. 1000);
-my @labels = qw(alpha beta gamma delta epsilon phi gi);
+my $graph = Imager::Graph::Line->new();
+$graph->set_image_width(900);
+$graph->set_image_height(600);
+$graph->set_font($font);
 
-my $line = Imager::Graph::Line->new();
-ok($line, "creating line chart object");
+$graph->add_data_series([1, 2]);
+$graph->set_labels(['AWWWWWWWWWWWWWWA', 'AWWWWWWWWWWWWWWWWWWWWWWWWWWWWWA']);
 
-$line->add_data_series(\@data);
-$line->set_labels(\@labels);
+my $img = $graph->draw() || warn $graph->error;
 
-my $img1 = $line->draw();
-ok($img1, "drawing line chart");
-
-$img1->write(file=>'testout/t30_points.ppm') or die "Can't save img1: ".$img1->errstr."\n";
-cmpimg($img1, 'testimg/t30_points.ppm', 1);
+$img->write(file=>'testout/t33_long_labels.ppm') or die "Can't save img1: ".$img->errstr."\n";
+cmpimg($img, 'testimg/t33_long_labels.ppm', 1);
 
 unless (is(@warned, 0, "should be no warnings")) {
   diag($_) for @warned;
@@ -58,4 +54,6 @@ sub cmpimg {
     or return ok(0, "Cannot read $file: ".$cmpimg->errstr);
   my $diff = Imager::i_img_diff($img->{IMG}, $cmpimg->{IMG});
   cmp_ok($diff, '<', $limit, "Comparison to $file ($diff)");
+
 }
+
