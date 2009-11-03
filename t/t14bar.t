@@ -13,7 +13,7 @@ use Test::More;
 
 use Imager qw(:handy);
 
-plan tests => 3;
+plan tests => 4;
 
 my @warned;
 local $SIG{__WARN__} =
