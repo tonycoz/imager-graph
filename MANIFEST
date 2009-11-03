@@ -19,11 +19,13 @@ t/t10pie.t
 t/t11line.t
 t/t12column.t
 t/t13stacked_col.t
+t/t14bar.t
 t/t20api.t
 t/t21style_api.t
 t/t30many_points.t
 t/t31tic_color.t
 t/t32series_labels.t
+t/t33_long_labels.t
 t/t91pod.t
 t/t93podcover.t
 testimg/t10_hlegend.png
@@ -33,7 +35,10 @@ testimg/t10_noother.png
 testimg/t10_pie1.png
 testimg/t10_pie2.png
 testimg/t10_rad_fount.png
+testimg/t14_bar.ppm
 testimg/t30_points.ppm
 testimg/t31tic_color.ppm
+testimg/t31tic_color_CMA.ppm
 testimg/t32_series.ppm
+testimg/t33_long_labels.ppm
 TODO
