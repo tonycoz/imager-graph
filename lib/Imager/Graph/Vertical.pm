@@ -648,7 +648,7 @@ sub _draw_columns {
   my $bottom = $graph_box->[1];
   my $zero_position =  int($bottom + $graph_height - (-1*$min_value / $value_range) * ($graph_height -1));
 
-  my $bar_width = int($graph_width / $column_count - 1);
+  my $bar_width = $graph_width / $column_count;
 
   my $outline_color;
   if ($style->{'features'}{'outline'}) {
@@ -671,11 +671,19 @@ sub _draw_columns {
     my @data = @{$series->{'data'}};
     my $data_size = scalar @data;
     for (my $i = 0; $i < $data_size; $i++) {
-      my $x1 = int($left + $bar_width * (scalar @$col_series * $i + $series_pos)) + scalar @$col_series * $i + $series_pos + ($column_padding / 2);
+      my $part1 = $bar_width * (scalar @$col_series * $i);
+      my $part2 = ($series_pos) * $bar_width;
+      my $x1 = $left + $part1 + $part2;
       if ($has_stacked_columns) {
-        $x1 += ($i + 1) * $bar_width + $i + 1;
+        $x1 += ($bar_width * ($i+1));
       }
-      my $x2 = $x1 + $bar_width - $column_padding;
+      $x1 = int($x1);
+
+      my $x2 = int($x1 + $bar_width - $column_padding)-1;
+      # Special case for when bar_width is less than 1.
+      if ($x2 < $x1) {
+        $x2 = $x1;
+      }
 
       my $y1 = int($bottom + ($value_range - $data[$i] + $min_value)/$value_range * $graph_height);
 
@@ -722,7 +730,7 @@ sub _draw_stacked_columns {
   my $graph_width = $self->_get_number('graph_width');
   my $graph_height = $self->_get_number('graph_height');
 
-  my $bar_width = int($graph_width / $column_count -1);
+  my $bar_width = $graph_width / $column_count;
   my $column_series = 0;
   if (my $column_series_data = $self->_get_data_series()->{'column'}) {
     $column_series = (scalar @$column_series_data);
@@ -751,8 +759,14 @@ sub _draw_stacked_columns {
     my @data = @{$series->{'data'}};
     my $data_size = scalar @data;
     for (my $i = 0; $i < $data_size; $i++) {
-      my $x1 = int($left + $bar_width * ($column_series * $i)) + $column_series * $i + ($column_padding / 2);
-      my $x2 = $x1 + $bar_width - $column_padding;
+      my $part1 = $bar_width * $i * $column_series;
+      my $part2 = 0;
+      my $x1 = int($left + $part1 + $part2);
+      my $x2 = int($x1 + $bar_width - $column_padding) - 1;
+      # Special case for when bar_width is less than 1.
+      if ($x2 < $x1) {
+        $x2 = $x1;
+      }
 
       my $y1 = int($bottom + ($value_range - $data[$i] + $min_value)/$value_range * $graph_height);
 
