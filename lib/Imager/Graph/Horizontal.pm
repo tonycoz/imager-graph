@@ -193,6 +193,9 @@ sub draw {
   if ($self->_get_data_series()->{'bar'}) {
     $self->_draw_bars();
   }
+  if ($self->_get_data_series()->{'line'}) {
+    $self->_draw_lines();
+  }
 
   if ($self->_get_x_tics()) {
     $self->_draw_x_tics();
@@ -212,10 +215,11 @@ sub _get_data_range {
   my $column_count = 0;
 
   my ($b_min, $b_max, $b_cols) = $self->_get_bar_range();
+  my ($l_min, $l_max, $l_cols) = $self->_get_line_range();
 
-  $min_value = $self->_min(STARTING_MIN_VALUE, $b_min);
-  $max_value = $self->_max(0, $b_max);
-  $column_count = $b_cols;
+  $min_value = $self->_min(STARTING_MIN_VALUE, $b_min, $l_min);
+  $max_value = $self->_max(0, $b_max, $l_max);
+  $column_count = $self->_max(0, $b_cols, $l_cols);
 
   my $config_min = $self->_get_number('x_min');
   my $config_max = $self->_get_number('x_max');
@@ -302,6 +306,34 @@ sub _max {
   return $min;
 }
 
+sub _get_line_range {
+  my $self = shift;
+  my $series = $self->_get_data_series()->{'line'};
+  return (undef, undef, 0) unless $series;
+
+  my $max_value = 0;
+  my $min_value = STARTING_MIN_VALUE;
+  my $column_count = 0;
+
+  my @series = @{$series};
+  foreach my $series (@series) {
+    my @data = @{$series->{'data'}};
+
+    if (scalar @data > $column_count) {
+      $column_count = scalar @data;
+    }
+
+    foreach my $value (@data) {
+      if ($value > $max_value) { $max_value = $value; }
+      if ($value < $min_value) { $min_value = $value; }
+    }
+  }
+
+  return ($min_value, $max_value, $column_count);
+}
+
+
+
 sub _get_bar_range {
   my $self = shift;
 
@@ -372,14 +404,13 @@ sub _draw_lines {
 
   my $has_columns = (defined $self->_get_data_series()->{'column'} || $self->_get_data_series->{'stacked_column'}) ? 1 : 0;
 
-  my $col_width = int($graph_width / $column_count) -1;
+  my $col_height = int($graph_height / $column_count) -1;
 
   my $graph_box = $self->_get_graph_box();
   my $left = $graph_box->[0] + 1;
   my $bottom = $graph_box->[1];
 
-  my $zero_position =  $bottom + $graph_height - (-1*$min_value / $value_range) * ($graph_height - 1);
-
+  my $zero_position =  $left + $graph_width - (-1*$min_value / $value_range) * ($graph_width - 1);
 
   my $line_aa = $self->_get_number("lineaa");
   foreach my $series (@$line_series) {
@@ -388,33 +419,34 @@ sub _draw_lines {
 
     my $interval;
     if ($has_columns) {
-      $interval = $graph_width / ($data_size);
+      $interval = $graph_height / ($data_size);
     }
     else {
-      $interval = $graph_width / ($data_size - 1);
+      $interval = $graph_height / ($data_size - 1);
     }
     my $color = $self->_data_color($series_counter);
 
     # We need to add these last, otherwise the next line segment will overwrite half of the marker
     my @marker_positions;
     for (my $i = 0; $i < $data_size - 1; $i++) {
-      my $x1 = $left + $i * $interval;
-      my $x2 = $left + ($i + 1) * $interval;
+      my $y1 = $bottom + $i * $interval;
+      my $y2 = $bottom + ($i + 1) * $interval;
 
-      $x1 += $has_columns * $interval / 2;
-      $x2 += $has_columns * $interval / 2;
+      $y1 += $has_columns * $interval / 2;
+      $y2 += $has_columns * $interval / 2;
 
-      my $y1 = $bottom + ($value_range - $data[$i] + $min_value)/$value_range * $graph_height;
-      my $y2 = $bottom + ($value_range - $data[$i + 1] + $min_value)/$value_range * $graph_height;
+      my $x1 = $left + ($value_range - $data[$i] + $min_value)/$value_range * $graph_width;
+      my $x2 = $left + ($value_range - $data[$i + 1] + $min_value)/$value_range * $graph_width;
 
       push @marker_positions, [$x1, $y1];
       $img->line(x1 => $x1, y1 => $y1, x2 => $x2, y2 => $y2, aa => $line_aa, color => $color) || die $img->errstr;
     }
 
-    my $x2 = $left + ($data_size - 1) * $interval;
-    $x2 += $has_columns * $interval / 2;
 
-    my $y2 = $bottom + ($value_range - $data[$data_size - 1] + $min_value)/$value_range * $graph_height;
+    my $y2 = $bottom + ($data_size - 1) * $interval;
+    $y2 += $has_columns * $interval / 2;
+
+    my $x2 = $left + ($value_range - $data[$data_size - 1] + $min_value)/$value_range * $graph_width;
 
     push @marker_positions, [$x2, $y2];
     foreach my $position (@marker_positions) {
