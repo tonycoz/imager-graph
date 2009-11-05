@@ -623,8 +623,6 @@ sub _draw_area {
   my $area_series = $self->_get_data_series()->{'area'};
   my $series_counter = $self->_get_series_counter() || 0;
 
-  my $has_columns = (defined $self->_get_data_series()->{'column'} || $self->_get_data_series->{'stacked_column'}) ? 1 : 0;
-
   my $col_width = int($graph_width / $column_count) -1;
 
   my $graph_box = $self->_get_graph_box();
@@ -640,13 +638,8 @@ sub _draw_area {
     my @data = @{$series->{'data'}};
     my $data_size = scalar @data;
 
-    my $interval;
-    if ($has_columns) {
-      $interval = $graph_width / ($data_size);
-    }
-    else {
-      $interval = $graph_width / ($data_size - 1);
-    }
+    my $interval = $graph_width / ($data_size - 1);
+
     my $color = $self->_data_color($series_counter);
 
     # We need to add these last, otherwise the next line segment will overwrite half of the marker
@@ -654,8 +647,6 @@ sub _draw_area {
     my @polygon_points;
     for (my $i = 0; $i < $data_size - 1; $i++) {
       my $x1 = $left + $i * $interval;
-
-      $x1 += $has_columns * $interval / 2;
 
       my $y1 = $bottom + ($value_range - $data[$i] + $min_value)/$value_range * $graph_height;
 
@@ -668,7 +659,6 @@ sub _draw_area {
     }
 
     my $x2 = $left + ($data_size - 1) * $interval;
-    $x2 += $has_columns * $interval / 2;
 
     my $y2 = $bottom + ($value_range - $data[$data_size - 1] + $min_value)/$value_range * $graph_height;
     push @polygon_points, [$x2, $y2];
