@@ -79,6 +79,23 @@ sub add_line_data_series {
   return;
 }
 
+=item add_area_data_series(\@data, $series_name)
+
+Add a area data series to the graph.
+
+=cut
+
+sub add_area_data_series {
+  my $self = shift;
+  my $data_ref = shift;
+  my $series_name = shift;
+
+  $self->_add_data_series('area', $data_ref, $series_name);
+
+  return;
+}
+
+
 =item set_y_max($value)
 
 Sets the maximum y value to be displayed.  This will be ignored if the y_max is lower than the highest value.
@@ -246,6 +263,9 @@ sub draw {
   if ($self->_get_data_series()->{'line'}) {
     return unless $self->_draw_lines();
   }
+  if ($self->_get_data_series()->{'area'}) {
+    return unless $self->_draw_area();
+  }
 
   if ($self->_get_y_tics()) {
     $self->_draw_y_tics();
@@ -267,12 +287,13 @@ sub _get_data_range {
   my ($sc_min, $sc_max, $sc_cols) = $self->_get_stacked_column_range();
   my ($c_min, $c_max, $c_cols) = $self->_get_column_range();
   my ($l_min, $l_max, $l_cols) = $self->_get_line_range();
+  my ($a_min, $a_max, $a_cols) = $self->_get_area_range();
 
   # These are side by side...
   $sc_cols += $c_cols;
 
-  $min_value = $self->_min(STARTING_MIN_VALUE, $sc_min, $c_min, $l_min);
-  $max_value = $self->_max(0, $sc_max, $c_max, $l_max);
+  $min_value = $self->_min(STARTING_MIN_VALUE, $sc_min, $c_min, $l_min, $a_min);
+  $max_value = $self->_max(0, $sc_max, $c_max, $l_max, $a_max);
 
   my $config_min = $self->_get_number('y_min');
   my $config_max = $self->_get_number('y_max');
@@ -312,7 +333,7 @@ sub _get_data_range {
       $max_value += $difference;
     }
   }
-  $column_count = $self->_max(0, $sc_cols, $l_cols);
+  $column_count = $self->_max(0, $sc_cols, $l_cols, $a_cols);
 
   if ($self->_get_number('automatic_axis')) {
     # In case this was set via a style, and not by the api method
@@ -385,6 +406,33 @@ sub _get_line_range {
 
   return ($min_value, $max_value, $column_count);
 }
+
+sub _get_area_range {
+  my $self = shift;
+  my $series = $self->_get_data_series()->{'area'};
+  return (undef, undef, 0) unless $series;
+
+  my $max_value = 0;
+  my $min_value = STARTING_MIN_VALUE;
+  my $column_count = 0;
+
+  my @series = @{$series};
+  foreach my $series (@series) {
+    my @data = @{$series->{'data'}};
+
+    if (scalar @data > $column_count) {
+      $column_count = scalar @data;
+    }
+
+    foreach my $value (@data) {
+      if ($value > $max_value) { $max_value = $value; }
+      if ($value < $min_value) { $min_value = $value; }
+    }
+  }
+
+  return ($min_value, $max_value, $column_count);
+}
+
 
 sub _get_column_range {
   my $self = shift;
@@ -553,6 +601,95 @@ sub _draw_lines {
   $self->_set_series_counter($series_counter);
   return 1;
 }
+
+sub _draw_area {
+  my $self = shift;
+  my $style = $self->{'_style'};
+
+  my $img = $self->_get_image();
+
+  my $max_value = $self->_get_max_value();
+  my $min_value = $self->_get_min_value();
+  my $column_count = $self->_get_column_count();
+
+  my $value_range = $max_value - $min_value;
+
+  my $width = $self->_get_number('width');
+  my $height = $self->_get_number('height');
+
+  my $graph_width = $self->_get_number('graph_width');
+  my $graph_height = $self->_get_number('graph_height');
+
+  my $area_series = $self->_get_data_series()->{'area'};
+  my $series_counter = $self->_get_series_counter() || 0;
+
+  my $has_columns = (defined $self->_get_data_series()->{'column'} || $self->_get_data_series->{'stacked_column'}) ? 1 : 0;
+
+  my $col_width = int($graph_width / $column_count) -1;
+
+  my $graph_box = $self->_get_graph_box();
+  my $left = $graph_box->[0] + 1;
+  my $bottom = $graph_box->[1];
+  my $right = $graph_box->[2];
+  my $top = $graph_box->[3];
+
+  my $zero_position =  $bottom + $graph_height - (-1*$min_value / $value_range) * ($graph_height - 1);
+
+  my $line_aa = $self->_get_number("lineaa");
+  foreach my $series (@$area_series) {
+    my @data = @{$series->{'data'}};
+    my $data_size = scalar @data;
+
+    my $interval;
+    if ($has_columns) {
+      $interval = $graph_width / ($data_size);
+    }
+    else {
+      $interval = $graph_width / ($data_size - 1);
+    }
+    my $color = $self->_data_color($series_counter);
+
+    # We need to add these last, otherwise the next line segment will overwrite half of the marker
+    my @marker_positions;
+    my @polygon_points;
+    for (my $i = 0; $i < $data_size - 1; $i++) {
+      my $x1 = $left + $i * $interval;
+
+      $x1 += $has_columns * $interval / 2;
+
+      my $y1 = $bottom + ($value_range - $data[$i] + $min_value)/$value_range * $graph_height;
+
+      if ($i == 0) {
+        push @polygon_points, [$x1, $top];
+      }
+      push @polygon_points, [$x1, $y1];
+
+      push @marker_positions, [$x1, $y1];
+    }
+
+    my $x2 = $left + ($data_size - 1) * $interval;
+    $x2 += $has_columns * $interval / 2;
+
+    my $y2 = $bottom + ($value_range - $data[$data_size - 1] + $min_value)/$value_range * $graph_height;
+    push @polygon_points, [$x2, $y2];
+    push @polygon_points, [$x2, $top];
+    push @polygon_points, $polygon_points[0];
+
+    my @fill = $self->_data_fill($series_counter, [$left, $bottom, $right, $top]);
+    $img->polygon(points => [@polygon_points], @fill);
+
+    push @marker_positions, [$x2, $y2];
+    foreach my $position (@marker_positions) {
+      $self->_draw_line_marker($position->[0], $position->[1], $series_counter);
+    }
+    $series_counter++;
+  }
+
+  $self->_set_series_counter($series_counter);
+  return 1;
+}
+
+
 
 sub _line_marker {
   my ($self, $index) = @_;
