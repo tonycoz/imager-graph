@@ -709,6 +709,14 @@ sub _get_y_tic_width {
   my $self = shift;
 
   my $labels = $self->_get_labels();
+
+  if (!$labels) {
+    return;
+  }
+
+  my %text_info = $self->_text_style('legend')
+    or return;
+
   my $max_width = 0;
   foreach my $label (@$labels) {
     my @box = $self->_text_bbox($label, 'legend');
