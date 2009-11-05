@@ -125,8 +125,13 @@ sub draw {
   my $graph_width = $chart_box[2] - $chart_box[0];
   my $graph_height = $chart_box[3] - $chart_box[1];
 
-  my $col_height = int(($graph_height - 1) / $column_count) -1;
-  $graph_height = $col_height * $column_count + 1;
+  my $col_height = ($graph_height - 1) / $column_count;
+  if ($col_height > 1) {
+    $graph_height = int($col_height) * $column_count + 1;
+  }
+  else {
+    $graph_height = $col_height * $column_count + 1;
+  }
 
   my $tic_count = $self->_get_x_tics();
   my $tic_distance = int(($graph_width -1) / ($tic_count - 1));
@@ -517,7 +522,7 @@ sub _draw_bars {
 
   my $zero_position =  int($left + (-1*$min_value / $value_range) * ($graph_width-1));
 
-  my $bar_height = int($graph_height / $column_count - 1);
+  my $bar_height = $graph_height / $column_count;
 
   my $outline_color;
   if ($style->{'features'}{'outline'}) {
@@ -537,9 +542,15 @@ sub _draw_bars {
     my $data_size = scalar @data;
     for (my $i = 0; $i < $data_size; $i++) {
 
-      my $y1 = int($bottom + $bar_height * (scalar @$col_series * $i + $series_pos)) + scalar @$col_series * $i + $series_pos + ($column_padding / 2);
+      my $part1 = $bar_height * (scalar @$col_series * $i);
+      my $part2 = ($series_pos) * $bar_height;
+      my $y1 = int($bottom + $part1 + $part2);
 
-      my $y2 = $y1 + $bar_height - $column_padding;
+      my $y2 = int($y1 + $bar_height - $column_padding)-1;
+      # Special case for when bar_height is less than 1.
+      if ($y2 < $y1) {
+        $y2 = $y1;
+      }
 
       my $x1 = int($left - ($min_value - $data[$i]) / $value_range * $graph_width);
 
