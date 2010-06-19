@@ -26,6 +26,7 @@ t/t30many_points.t
 t/t31tic_color.t
 t/t32series_labels.t
 t/t33_long_labels.t
+t/t34horizontal_many_points.t
 t/t91pod.t
 t/t93podcover.t
 testimg/t10_hlegend.png
@@ -41,4 +42,5 @@ testimg/t31tic_color.ppm
 testimg/t31tic_color_CMA.ppm
 testimg/t32_series.ppm
 testimg/t33_long_labels.ppm
+testimg/t34_points.ppm
 TODO
