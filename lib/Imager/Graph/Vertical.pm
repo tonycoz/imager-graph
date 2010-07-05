@@ -202,30 +202,33 @@ sub draw {
   my $tic_distance = ($graph_height-1) / ($tic_count - 1);
   $graph_height = int($tic_distance * ($tic_count - 1));
 
-  my $bottom = $chart_box[1];
-  my $left   = $chart_box[0];
+  my $top  = $chart_box[1];
+  my $left = $chart_box[0];
 
   $self->{'_style'}{'graph_width'} = $graph_width;
   $self->{'_style'}{'graph_height'} = $graph_height;
 
-  my @graph_box = ($left, $bottom, $left + $graph_width, $bottom + $graph_height);
+  my @graph_box = ($left, $top, $left + $graph_width, $top + $graph_height);
   $self->_set_graph_box(\@graph_box);
 
-  $img->box(
-            color   => $self->_get_color('outline.line'),
-            xmin    => $left,
-            xmax    => $left+$graph_width,
-            ymin    => $bottom,
-            ymax    => $bottom+$graph_height,
-            );
+  my @fill_box = ( $left, $top, $left+$graph_width, $top+$graph_height );
+  if ($self->{_style}{features}{graph_outline}) {
+    $img->box(
+	      color   => $self->_get_color('graph.outline'),
+	      xmin    => $left,
+	      xmax    => $left+$graph_width,
+	      ymin    => $top,
+	      ymax    => $top+$graph_height,
+	     );
+    ++$fill_box[0];
+    ++$fill_box[1];
+    --$fill_box[2];
+    --$fill_box[3];
+  }
 
   $img->box(
-            color   => $self->_get_color('bg'),
-            xmin    => $left + 1,
-            xmax    => $left+$graph_width - 1,
-            ymin    => $bottom + 1,
-            ymax    => $bottom+$graph_height-1 ,
-            filled  => 1,
+            $self->_get_fill('graph.fill'),
+	    box => \@fill_box,
             );
 
   my $min_value = $self->_get_min_value();
@@ -234,7 +237,7 @@ sub draw {
 
   my $zero_position;
   if ($value_range) {
-    $zero_position =  $bottom + $graph_height - (-1*$min_value / $value_range) * ($graph_height-1);
+    $zero_position =  $top + $graph_height - (-1*$min_value / $value_range) * ($graph_height-1);
   }
 
   if ($min_value < 0) {
@@ -243,7 +246,7 @@ sub draw {
             xmin    => $left + 1,
             xmax    => $left+$graph_width- 1,
             ymin    => $zero_position,
-            ymax    => $bottom+$graph_height - 1,
+            ymax    => $top+$graph_height - 1,
             filled  => 1,
     );
     $img->line(
@@ -1282,8 +1285,14 @@ sub _style_defs {
     {
      opacity => 0.5,
     };
+  push @{$work{features}}, qw/graph_outline graph_fill/;
 
   return \%work;
+}
+
+sub _composite {
+  my ($self) = @_;
+  return ( $self->SUPER::_composite(), "graph" );
 }
 
 1;

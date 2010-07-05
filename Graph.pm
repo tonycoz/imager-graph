@@ -1217,10 +1217,18 @@ my %style_defs =
                               coef=>[0.1, 0.2, 0.4, 0.6, 0.7, 0.9, 1.2, 
                                      0.9, 0.7, 0.6, 0.4, 0.2, 0.1 ] },
                  },
+   # controls the outline of graph elements representing data, eg. pie
+   # slices, bars or columns
    outline => {
                line =>'lookup(line)',
 	       lineaa => 'lookup(lineaa)',
               },
+   # controls the outline and background of the data area of the chart
+   graph =>
+   {
+    fill => "lookup(bg)",
+    outline => "lookup(fg)",
+   },
    size=>256,
    width=>'scale(1.5,size)',
    height=>'lookup(size)',
@@ -1559,14 +1567,20 @@ sub _style_setup {
   }
 
   # features are handled specially
-  $work{features} = {};
+  my %features;
+  $work{features} = \%features;
   for my $src (@search_list) {
     if ($src->{features}) {
       if (ref $src->{features}) {
         if (ref($src->{features}) =~ /ARRAY/) {
           # just set those features
           for my $feature (@{$src->{features}}) {
-            $work{features}{$feature} = 1;
+	    if ($feature =~ /^no(.+)$/) {
+	      delete $features{$1};
+	    }
+	    else {
+	      $features{$feature} = 1;
+	    }
           }
         }
         elsif (ref($src->{features}) =~ /HASH/) {
@@ -1583,8 +1597,6 @@ sub _style_setup {
       }
     }
   }
-  #use Data::Dumper;
-  #print Dumper(\%work);
 
   $self->{_style} = \%work;
 }
