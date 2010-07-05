@@ -19,7 +19,7 @@ WriteMakefile(
               'VERSION_FROM'  => 'Graph.pm', # finds $VERSION
               PREREQ_PM       => 
 	      { 
-	       Imager=>'0.61',
+	       Imager=>'0.75',
 	       'Test::More' => 0.47
 	      },
               clean => { FILES=>'testout' },

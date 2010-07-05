@@ -12,6 +12,7 @@ use Imager::Graph;
 @ISA = qw(Imager::Graph);
 
 use constant STARTING_MIN_VALUE => 99999;
+
 =over 4
 
 =item add_data_series(\@data, $series_name)
@@ -513,6 +514,9 @@ sub _draw_legend {
   if (my $series = $self->_get_data_series()->{'line'}) {
     push @labels, map { $_->{'series_name'} } @$series;
   }
+  if (my $series = $self->_get_data_series()->{'area'}) {
+    push @labels, map { $_->{'series_name'} } @$series;
+  }
 
   if ($style->{features}{legend} && (scalar @labels)) {
     $self->SUPER::_draw_legend($self->_get_image(), \@labels, $chart_box)
@@ -602,6 +606,34 @@ sub _draw_lines {
   return 1;
 }
 
+sub _area_data_fill {
+  my ($self, $index, $box) = @_;
+
+  my %fill = $self->_data_fill($index, $box);
+
+  my $opacity = $self->_get_number("area.opacity");
+  $opacity == 1
+    and return %fill;
+
+  my $orig_fill = $fill{fill};
+  unless ($orig_fill) {
+    $orig_fill = Imager::Fill->new
+      (
+       solid => $fill{color},
+       combine => "normal",
+      );
+  }
+  return
+    (
+     fill => Imager::Fill->new
+     (
+      type => "opacity",
+      other => $orig_fill,
+      opacity => $opacity,
+     ),
+    );
+}
+
 sub _draw_area {
   my $self = shift;
   my $style = $self->{'_style'};
@@ -665,7 +697,7 @@ sub _draw_area {
     push @polygon_points, [$x2, $top];
     push @polygon_points, $polygon_points[0];
 
-    my @fill = $self->_data_fill($series_counter, [$left, $bottom, $right, $top]);
+    my @fill = $self->_area_data_fill($series_counter, [$left, $bottom, $right, $top]);
     $img->polygon(points => [@polygon_points], @fill);
 
     push @marker_positions, [$x2, $y2];
@@ -1241,5 +1273,17 @@ sub _get_max_value      { return $_[0]->{'max_value'} }
 sub _get_image_box      { return $_[0]->{'image_box'} }
 sub _get_graph_box      { return $_[0]->{'graph_box'} }
 sub _get_series_counter { return $_[0]->{'series_counter'} }
+
+sub _style_defs {
+  my ($self) = @_;
+
+  my %work = %{$self->SUPER::_style_defs()};
+  $work{area} =
+    {
+     opacity => 0.5,
+    };
+
+  return \%work;
+}
 
 1;
