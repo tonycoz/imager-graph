@@ -1069,8 +1069,11 @@ sub _get_y_tic_width{
 
   my $max_width = 0;
   for my $count (0 .. $tic_count - 1) {
-    my $value = sprintf("%.2f", ($count*$interval)+$min);
+    my $value = ($count*$interval)+$min;
 
+    if ($interval < 1 || ($value != int($value))) {
+      $value = sprintf("%.2f", $value);
+    }
     my @box = $self->_text_bbox($value, 'legend');
     my $width = $box[2] - $box[0];
 
