@@ -2357,19 +2357,9 @@ sub _filter_region {
   $left > 0 or $left = 0;
   $top > 0 or $top = 0;
 
-  # newer versions of Imager let you work on just part of an image
-  if ($img->can('masked') && !$self->{_style}{features}{_debugblur}) {
-    my $masked = $img->masked(left=>$left, top=>$top,
-                              right=>$right, bottom=>$bottom);
-    $masked->filter(%$filter);
-  }
-  else {
-    # for older versions of Imager
-    my $subset = $img->crop(left=>$left, top=>$top,
-                            right=>$right, bottom=>$bottom);
-    $subset->filter(%$filter);
-    $img->paste(left=>$left, top=>$top, img=>$subset);
-  }
+  my $masked = $img->masked(left=>$left, top=>$top,
+			    right=>$right, bottom=>$bottom);
+  $masked->filter(%$filter);
 }
 
 1;
