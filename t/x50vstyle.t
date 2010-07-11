@@ -215,6 +215,7 @@ END {
     unlink "testout/x50line_dashout.ppm";
     unlink "testout/x50line_fill.ppm";
     unlink "testout/x50line_grid.ppm";
+    unlink "testout/x50line_griddef.ppm";
     unlink "testout/x50line_gridm.ppm";
   }
 }

@@ -96,6 +96,7 @@ plan tests => 7;
 END {
   unless ($ENV{IMAGER_GRAPH_KEEP_FILES}) {
     unlink "testout/t40area1.ppm";
+    unlink "testout/t40area2.ppm";
   }
 }
 
