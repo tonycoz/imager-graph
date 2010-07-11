@@ -1593,7 +1593,12 @@ sub _style_setup {
       }
       else {
         # just set that single feature
-        $work{features}{$src->{features}} = 1;
+	if ($src->{features} =~ /^no(.+)$/) {
+	  delete $features{$1};
+	}
+	else {
+	  $features{$src->{features}} = 1;
+	}
       }
     }
   }
@@ -1863,7 +1868,7 @@ sub _data_color {
   return '000000';
 }
 
-=item _get_fill($index, $box)
+=item _get_fill($name, $box)
 
 Retrieves fill parameters for a named fill.
 
@@ -1887,6 +1892,67 @@ sub _get_fill {
   return $self->_translate_fill($what, $box, @depth);
 }
 
+=item _get_line($name)
+
+Return color (and possibly other) parameters for drawing a line with
+the _line() method.
+
+=cut
+
+sub _get_line {
+  my ($self, $name, @depth) = @_;
+
+  push (@depth, $name);
+  my $what;
+  if ($name =~ /^(\w+)\.(\w+)$/) {
+    $what = $self->{_style}{$1}{$2};
+  }
+  else {
+    $what = $self->{_style}{$name};
+  }
+
+  defined($what)
+    or return $self->_error("no line style $name found");
+
+  if (ref $what) {
+    if (eval { $what->isa("Imager::Color") }) {
+      return $what;
+    }
+    if (ref $what eq "HASH") {
+      # allow each kep to be looked up
+      my %work = %$what;
+
+      if ($work{color} =~ /^lookup\((.*)\)$/) {
+	$work{color} = $self->_get_color($1, @depth);
+      }
+      for my $key (keys %work) {
+	$key eq "color" and next;
+
+	if ($work{$key} =~ /^lookup\((.*)\)$/) {
+	  $work{$key} = $self->_get_thing($1);
+	}
+      }
+
+      return %work;
+    }
+    return ( color => Imager::Color->new(@$what) );
+  }
+  else {
+    if ($what =~ /^lookup\((\w+(?:\.\w+)?)\)$/) {
+      @depth < MAX_DEPTH
+	or return $self->_error("too many levels of recursion in lookup (@depth)");
+      return $self->_get_line($1, @depth);
+    }
+    else {
+      # presumably a text color
+      my $color = Imager::Color->new($what)
+	or return $self->_error("Could not translate $what as a color: ".Imager->errstr);
+
+      return ( color => $color );
+    }
+  }
+}
+
 =item _make_img()
 
 Builds the image object for the graph and fills it with the background
@@ -1903,19 +1969,19 @@ sub _make_img {
 
   $channels ||= 3;
 
-  my $img = Imager->new(xsize=>$width, ysize=>$height, channels=>$channels);
+  my $img = Imager->new(xsize=>$width, ysize=>$height, channels=>$channels)
+    or return $self->_error("Error creating image: " . Imager->errstr);
 
   $img->box($self->_get_fill('back', [ 0, 0, $width-1, $height-1]));
 
-  $img;
+  $self->{_image} = $img;
+
+  return $img;
 }
 
 sub _get_image {
   my $self = shift;
 
-  if (!$self->{'_image'}) {
-    $self->{'_image'} = $self->_make_img();
-  }
   return $self->{'_image'};
 }
 
@@ -2340,7 +2406,7 @@ should be merged instead of just being replaced.
 =cut
 
 sub _composite {
-  qw(title legend text label dropshadow outline callout);
+  qw(title legend text label dropshadow outline callout graph);
 }
 
 sub _filter_region {
@@ -2360,6 +2426,101 @@ sub _filter_region {
   my $masked = $img->masked(left=>$left, top=>$top,
 			    right=>$right, bottom=>$bottom);
   $masked->filter(%$filter);
+}
+
+=item _line(x1 => $x1, y1 => $y1, ..., style => $style)
+
+Wrapper for line drawing, implements styles Imager doesn't.
+
+Currently styles are limited to horizontal and vertical lines.
+
+=cut
+
+sub _line {
+  my ($self, %opts) = @_;
+
+  my $img = delete $opts{img}
+    or die "No img supplied to _line()";
+  my $style = delete $opts{style} || "solid";
+
+  if ($style eq "solid" || ($opts{x1} != $opts{x2} && $opts{y1} != $opts{y2})) {
+    return $img->line(%opts);
+  }
+  elsif ($style eq 'dashed' || $style eq 'dotted') {
+    my ($x1, $y1, $x2, $y2) = delete @opts{qw/x1 y1 x2 y2/};
+    # the line is vertical or horizontal, so swapping doesn't hurt
+    $x1 > $x2 and ($x1, $x2) = ($x2, $x1);
+    $y1 > $y2 and ($y1, $y2) = ($y2, $y1);
+    my ($stepx, $stepy) = ( 0, 0 );
+    my $step_size = $style eq "dashed" ? 8 : 2;
+    my ($counter, $count_end);
+    if ($x1 == $x2) {
+      $stepy = $step_size;
+      ($counter, $count_end) = ($y1, $y2);
+    }
+    else {
+      $stepx = $step_size;
+      ($counter, $count_end) = ($x1, $x2);
+    }
+    my ($x, $y) = ($x1, $y1);
+    while ($counter < $count_end) {
+      if ($style eq "dotted") {
+	$img->setpixel(x => $x, y => $y, color => $opts{color});
+      }
+      else {
+	my $xe = $stepx ? $x + $stepx / 2 - 1 : $x;
+	$xe > $x2 and $xe = $x2;
+	my $ye = $stepy ? $y + $stepy / 2 - 1 : $y;
+	$ye > $y2 and $ye = $y2;
+	$img->line(x1 => $x, y1 => $y, x2 => $xe, y2 => $ye, %opts);
+      }
+      $counter += $step_size;
+      $x += $stepx;
+      $y += $stepy;
+    }
+
+    return 1;
+  }
+  else {
+    $self->_error("Unknown line style $style");
+    return;
+  }
+}
+
+=item _box(xmin ..., style => $style)
+
+A wrapper for drawing styled box outlines.
+
+=cut
+
+sub _box {
+  my ($self, %opts) = @_;
+
+  my $style = delete $opts{style} || "solid";
+  my $img = delete $opts{img}
+    or die "No img supplied to _box";
+
+  if ($style eq "solid") {
+    return $img->box(%opts);
+  }
+  else {
+    my $box = delete $opts{box};
+    # replicate Imager's defaults
+    my %work_opts = ( xmin => 0, ymin => 0, xmax => $img->getwidth() - 1, ymax => $img->getheight() -1, %opts, style => $style, img => $img );
+    my ($xmin, $ymin, $xmax, $ymax) = delete @work_opts{qw/xmin ymin xmax ymax/};
+    if ($box) {
+      ($xmin, $ymin, $xmax, $ymax) = @$box;
+    }
+    $xmin > $xmax and ($xmin, $xmax) = ($xmax, $xmin);
+    $ymin > $ymax and ($ymin, $ymax) = ($ymax, $ymin);
+
+    if ($xmax - $xmin > 1) {
+      $self->_line(x1 => $xmin+1, y1 => $ymin, x2 => $xmax-1, y2 => $ymin, %work_opts);
+      $self->_line(x1 => $xmin+1, y1 => $ymax, x2 => $xmax-1, y2 => $ymax, %work_opts);
+    }
+    $self->_line(x1 => $xmin, y1 => $ymin, x2 => $xmin, y2 => $ymax, %work_opts);
+    return $self->_line(x1 => $xmin, y1 => $ymin, x2 => $xmin, y2 => $ymax, %work_opts);
+  }
 }
 
 1;

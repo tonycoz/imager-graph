@@ -166,6 +166,9 @@ sub draw {
 
   my $style = $self->{_style};
 
+  $self->_make_img
+    or return;
+
   my $img = $self->_get_image()
     or return;
 
@@ -181,7 +184,7 @@ sub draw {
 
   # Scale the graph box down to the widest graph that can cleanly hold the # of columns.
   return unless $self->_get_data_range();
-  $self->_remove_tics_from_chart_box(\@chart_box);
+  $self->_remove_tics_from_chart_box(\@chart_box, \%opts);
   my $column_count = $self->_get_column_count();
 
   my $width = $self->_get_number('width');
@@ -213,13 +216,17 @@ sub draw {
 
   my @fill_box = ( $left, $top, $left+$graph_width, $top+$graph_height );
   if ($self->{_style}{features}{graph_outline}) {
-    $img->box(
-	      color   => $self->_get_color('graph.outline'),
-	      xmin    => $left,
-	      xmax    => $left+$graph_width,
-	      ymin    => $top,
-	      ymax    => $top+$graph_height,
-	     );
+    my @line = $self->_get_line("graph.outline")
+      or return;
+
+    $self->_box(
+		@line,
+		xmin    => $left,
+		xmax    => $left+$graph_width,
+		ymin    => $top,
+		ymax    => $top+$graph_height,
+		img     => $img,
+	       );
     ++$fill_box[0];
     ++$fill_box[1];
     --$fill_box[2];
@@ -258,6 +265,8 @@ sub draw {
     );
   }
 
+  $self->_reset_series_counter();
+
   if ($self->_get_data_series()->{'stacked_column'}) {
     return unless $self->_draw_stacked_columns();
   }
@@ -274,8 +283,8 @@ sub draw {
   if ($self->_get_y_tics()) {
     $self->_draw_y_tics();
   }
-  if ($self->_get_labels()) {
-    $self->_draw_x_tics();
+  if ($self->_get_labels(\%opts)) {
+    $self->_draw_x_tics(\%opts);
   }
 
   return $self->_get_image();
@@ -976,12 +985,34 @@ sub _add_data_series {
 
 =item show_horizontal_gridlines()
 
-Shows horizontal gridlines at the y-tics.
+Enables the C<horizontal_gridlines> feature, which shows horizontal
+gridlines at the y-tics.
+
+The style of the gridlines can be controlled with the
+set_horizontal_gridline_style() method (or by setting the hgrid
+style).
 
 =cut
 
 sub show_horizontal_gridlines {
-    $_[0]->{'custom_style'}->{'horizontal_gridlines'} = 1;
+    $_[0]->{'custom_style'}{features}{'horizontal_gridlines'} = 1;
+}
+
+=item set_horizontal_gridline_style(style => $style, color => $color)
+
+Set the style and color of horizonal gridlines.
+
+See: L<Imager::Graph/"Line styles">
+
+=cut
+
+sub set_horizontal_gridline_style {
+  my ($self, %opts) = @_;
+
+  $self->{custom_style}{hgrid} ||= {};
+  @{$self->{custom_style}{hgrid}}{keys %opts} = values %opts;
+
+  return 1;
 }
 
 =item use_automatic_axis()
@@ -1015,15 +1046,14 @@ sub _get_y_tics {
 }
 
 sub _remove_tics_from_chart_box {
-  my $self = shift;
-  my $chart_box = shift;
+  my ($self, $chart_box, $opts) = @_;
 
   # XXX - bad default
   my $tic_width = $self->_get_y_tic_width() || 10;
   my @y_tic_box = ($chart_box->[0], $chart_box->[1], $chart_box->[0] + $tic_width, $chart_box->[3]);
 
   # XXX - bad default
-  my $tic_height = $self->_get_x_tic_height() || 10;
+  my $tic_height = $self->_get_x_tic_height($opts) || 10;
   my @x_tic_box = ($chart_box->[0], $chart_box->[3] - $tic_height, $chart_box->[2], $chart_box->[3]);
 
   $self->_remove_box($chart_box, \@y_tic_box);
@@ -1034,7 +1064,7 @@ sub _remove_tics_from_chart_box {
   $self->_remove_box($chart_box, \@y_tic_tops);
 
   # Make sure that the first and last label fit
-  if (my $labels = $self->_get_labels()) {
+  if (my $labels = $self->_get_labels($opts)) {
     if (my @box = $self->_text_bbox($labels->[0], 'legend')) {
       my @remove_box = ($chart_box->[0],
                         $chart_box->[1],
@@ -1056,7 +1086,7 @@ sub _remove_tics_from_chart_box {
   }
 }
 
-sub _get_y_tic_width{
+sub _get_y_tic_width {
   my $self = shift;
   my $min = $self->_get_min_value();
   my $max = $self->_get_max_value();
@@ -1088,9 +1118,9 @@ sub _get_y_tic_width{
 }
 
 sub _get_x_tic_height {
-  my $self = shift;
+  my ($self, $opts) = @_;
 
-  my $labels = $self->_get_labels();
+  my $labels = $self->_get_labels($opts);
 
   if (!$labels) {
         return;
@@ -1135,7 +1165,8 @@ sub _draw_y_tics {
     or return;
 
   my $line_style = $self->_get_color('outline.line');
-  my $show_gridlines = $self->_get_number('horizontal_gridlines');
+  my $show_gridlines = $self->{_style}{features}{'horizontal_gridlines'};
+  my @grid_line = $self->_get_line("hgrid");
   my $tic_distance = ($graph_box->[3] - $graph_box->[1]) / ($tic_count - 1);
   for my $count (0 .. $tic_count - 1) {
     my $x1 = $graph_box->[0] - 5;
@@ -1161,27 +1192,24 @@ sub _draw_y_tics {
                  text => $value
                 );
 
-    if ($show_gridlines) {
-      # XXX - line styles!
-      for (my $i = $graph_box->[0]; $i < $graph_box->[2]; $i += 6) {
-        my $x1 = $i;
-        my $x2 = $i + 2;
-        if ($x2 > $graph_box->[2]) { $x2 = $graph_box->[2]; }
-        $img->line(x1 => $x1, x2 => $x2, y1 => $y1, y2 => $y1, aa => 1, color => $line_style);
-      }
+    if ($show_gridlines && $y1 != $graph_box->[1] && $y1 != $graph_box->[3]) {
+      $self->_line(x1 => $graph_box->[0], y1 => $y1,
+		   x2 => $graph_box->[2], y2 => $y1,
+		   img => $img,
+		   @grid_line);
     }
   }
 
 }
 
 sub _draw_x_tics {
-  my $self = shift;
+  my ($self, $opts) = @_;
 
   my $img = $self->_get_image();
   my $graph_box = $self->_get_graph_box();
   my $image_box = $self->_get_image_box();
 
-  my $labels = $self->_get_labels();
+  my $labels = $self->_get_labels($opts);
 
   my $tic_count = (scalar @$labels) - 1;
 
@@ -1278,6 +1306,7 @@ sub _get_min_value      { return $_[0]->{'min_value'} }
 sub _get_max_value      { return $_[0]->{'max_value'} }
 sub _get_image_box      { return $_[0]->{'image_box'} }
 sub _get_graph_box      { return $_[0]->{'graph_box'} }
+sub _reset_series_counter { $_[0]->{series_counter} = 0 }
 sub _get_series_counter { return $_[0]->{'series_counter'} }
 
 sub _style_defs {
@@ -1289,13 +1318,18 @@ sub _style_defs {
      opacity => 0.5,
     };
   push @{$work{features}}, qw/graph_outline graph_fill/;
+  $work{hgrid} =
+    {
+     color => "lookup(fg)",
+     style => "solid",
+    };
 
   return \%work;
 }
 
 sub _composite {
   my ($self) = @_;
-  return ( $self->SUPER::_composite(), "graph" );
+  return ( $self->SUPER::_composite(), "graph", "hgrid" );
 }
 
 1;

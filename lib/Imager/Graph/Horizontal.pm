@@ -101,6 +101,9 @@ sub draw {
 
   my $style = $self->{_style};
 
+  $self->_make_img
+    or return;
+
   my $img = $self->_get_image()
     or return;
 
@@ -640,7 +643,7 @@ Shows vertical gridlines at the y-tics.
 =cut
 
 sub show_vertical_gridlines {
-    $_[0]->{'custom_style'}->{'vertical_gridlines'} = 1;
+    $_[0]->{'custom_style'}{features}{'vertical_gridlines'} = 1;
 }
 
 =item use_automatic_axis()
@@ -830,7 +833,8 @@ sub _draw_x_tics {
   my %text_info = $self->_text_style('legend')
     or return;
 
-  my $show_gridlines = $self->_get_number('vertical_gridlines');
+  my $show_gridlines = $self->{_style}{features}{'vertical_gridlines'};
+  my @grid_line = $self->_get_line("vgrid");
   for my $count (0 .. $tic_count-1) {
     my $x1 = $graph_box->[0] + ($tic_distance * $count);
 
@@ -853,14 +857,11 @@ sub _draw_x_tics {
                  text => $value
                 );
 
-    if ($show_gridlines) {
-      # XXX - line styles!
-      for (my $i = $graph_box->[1]; $i < $graph_box->[3]; $i += 6) {
-        my $y1 = $i;
-        my $y2 = $i + 2;
-        if ($y2 > $graph_box->[3]) { $y2 = $graph_box->[3]; }
-        $img->line(x1 => $x1, x2 => $x1, y1 => $y1, y2 => $y2, aa => 1, color => '000000');
-      }
+    if ($show_gridlines && $x1 != $graph_box->[0] && $x1 != $graph_box->[2]) {
+      $self->_line(x1 => $x1, x2 => $x1,
+		   y1 => $y1, y2 => $y2,
+		   img => $img,
+		   @grid_line);
     }
   }
 }
@@ -898,6 +899,11 @@ sub _get_max_value      { return $_[0]->{'max_value'} }
 sub _get_image_box      { return $_[0]->{'image_box'} }
 sub _get_graph_box      { return $_[0]->{'graph_box'} }
 sub _get_series_counter { return $_[0]->{'series_counter'} }
+
+sub _composite {
+  my ($self) = @_;
+  return ( $self->SUPER::_composite(), "graph", "vgrid" );
+}
 
 1;
 

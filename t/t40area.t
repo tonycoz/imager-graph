@@ -29,46 +29,69 @@ my @data2 =
   );
 my @labels = qw(alpha beta gamma delta epsilon phi gi);
 
-plan tests => 4;
+plan tests => 7;
 
-my $area = Imager::Graph::Area->new;
-ok($area, "creating area chart object");
+{
+  my $area = Imager::Graph::Area->new;
+  ok($area, "creating area chart object");
 
-# this may change output quality too
+  # this may change output quality too
+  print "# Imager version: $Imager::VERSION\n";
+  print "# Font type: ",ref $font,"\n";
 
-print "# Imager version: $Imager::VERSION\n";
-print "# Font type: ",ref $font,"\n";
+  $area->add_data_series(\@data1, "Test Area");
+  $area->add_data_series(\@data2, "Test Area 2");
 
-$area->add_data_series(\@data1, "Test Area");
-$area->add_data_series(\@data2, "Test Area 2");
+  my $img1 = $area->draw
+    (
+     #data => \@data,
+     labels => \@labels,
+     font => $font, 
+     title => "Test",
+     features => { legend => 1 },
+     legend =>
+     { 
+      valign => "bottom",
+      halign => "center",
+      orientation => "horizontal",
+     },
+     area =>
+     {
+      opacity => 0.8,
+     },
+     #outline => { line => '404040' },
+    )
+      or print "# ", $area->error, "\n";
 
-my $img1 = $area->draw
-  (
-   #data => \@data,
-   labels => \@labels,
-   font => $font, 
-   title => "Test",
-   features => { legend => 1 },
-   legend =>
-   { 
-    valign => "bottom",
-    halign => "center",
-    orientation => "horizontal",
-   },
-   area =>
-   {
-    opacity => 0.8,
-   },
-   #outline => { line => '404040' },
-  )
-  or print "# ", $area->error, "\n";
+  ok($img1, "made the image");
 
-ok($img1, "made the image");
+  ok($img1->write(file => "testout/t40area1.ppm"),
+     "save to testout");
 
-ok($img1->write(file => "testout/t40area1.ppm"),
-   "save to testout");
+  cmpimg($img1, "testimg/t40area1.png");
+}
 
-cmpimg($img1, "testimg/t40area1.png");
+{
+  my $area = Imager::Graph::Area->new;
+  ok($area, "made area chart object");
+  $area->add_data_series(\@data1, "Test area");
+  $area->show_horizontal_gridlines();
+  $area->use_automatic_axis();
+  my $img2 = $area->draw
+    (
+     features => [ "horizontal_gridlines" ],
+     labels => \@labels,
+     font => $font,
+     hgrid => { style => "dashed", color => "#888" },
+     graph =>
+     {
+      outline => { color => "#F00", style => "dotted" },
+     },
+    );
+  ok($img2, "made second area chart image");
+  ok($img2->write(file => "testout/t40area2.ppm"),
+     "save to file");
+}
 
 END {
   unless ($ENV{IMAGER_GRAPH_KEEP_FILES}) {

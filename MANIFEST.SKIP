@@ -10,3 +10,7 @@
 \.rej$
 \.bak$
 ^Imager-Graph
+
+# t/x tests aren't distributed
+^t/x
+^xtestimg/

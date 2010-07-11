@@ -1,5 +1,90 @@
 Revision history for Perl extension Imager::Graph.
 
+Imager-Graph 0.08 - unreleased
+=================
+
+Now depends on Imager 0.75.
+
+More cool changes from Patrick Michaud:
+
+ - Area charts
+
+Other changes:
+
+ - horizonal_gridlines is now a feature and can be enabled like other
+   features (or disabled)
+
+ - hoisted the dashed-line drawing into Imager::Graph::_line() and
+   added a _get_line() method to retrieve line style information.
+
+ - features enabled earlier in the style list can now be disabled with
+   a feature "no{stylename}" when features are supplied as an arrayref
+   or scalar. eg. "nograph_outline".  If you supply features as a hashref
+   you can disable a feature with:
+     { stylename => 0 }
+
+ - for vertical charts, allow the outline of the graph area
+   (graph_outline) to be disabled (with nograph_outline in features.)
+
+ - for vertical charts, allow the fill of the graph area to be
+   controlled separately from the base bg (graph.fill)
+
+ - tests
+
+Bug fixes:
+
+ - generate y-axis tic-label widths baed on the labels actually used.
+
+ - make draw() idempotent for vertical charts
+
+ - multiple calls to draw() no longer return the same image
+
+ - labels supplied to draw() are now used for vertical and horizontal
+   charts
+
+TODO:
+
+ - changes from Vertical into Horizontal too:
+
+   - gridlines control
+
+   - chart area outline control
+
+   - line style for gridlines
+
+   - line style for chart area outline
+
+ - control of drawing markers for:
+
+   - area
+
+   - line
+
+ - tic size/positioning
+
+ - gap between tic and labels
+
+ - tests:
+
+   - gridlines control for h
+
+   - gridlines styling for h
+
+   - graph area outline control for h
+
+   - graph area outline style for h
+
+   - test idempotent for h
+
+ - document:
+
+   - features: horizontal_gridlines, graph_outline, graph_fill
+
+   - graph outline and gridline styles
+
+   - document no{feature}
+
+
 Imager-Graph 0.07 - 21 May 2009
 =================
 
