@@ -215,17 +215,14 @@ sub draw {
   $self->_set_graph_box(\@graph_box);
 
   my @fill_box = ( $left, $top, $left+$graph_width, $top+$graph_height );
-  if ($self->{_style}{features}{graph_outline}) {
+  if ($self->_feature_enabled("graph_outline")) {
     my @line = $self->_get_line("graph.outline")
       or return;
 
     $self->_box(
 		@line,
-		xmin    => $left,
-		xmax    => $left+$graph_width,
-		ymin    => $top,
-		ymax    => $top+$graph_height,
-		img     => $img,
+		box => \@fill_box,
+		img => $img,
 	       );
     ++$fill_box[0];
     ++$fill_box[1];
@@ -236,7 +233,7 @@ sub draw {
   $img->box(
             $self->_get_fill('graph.fill'),
 	    box => \@fill_box,
-            );
+	   );
 
   my $min_value = $self->_get_min_value();
   my $max_value = $self->_get_max_value();

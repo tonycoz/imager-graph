@@ -8,10 +8,15 @@ Now depends on Imager 0.75.
 More cool changes from Patrick Michaud:
 
  - Area charts
+   https://rt.cpan.org/Ticket/Display.html?id=7
+
+ - Imager::Graph::Horizontal::add_column_data_series() renamed to
+   add_bar_data_series() and now adds the series as a "bar" series.
 
 Other changes:
 
- - horizonal_gridlines is now a feature and can be enabled like other
+ - horizonal_gridlines (vertical charts) and vertical_gridlines
+   (horizontal charts) are now features and can be enabled like other
    features (or disabled)
 
  - hoisted the dashed-line drawing into Imager::Graph::_line() and
@@ -23,11 +28,12 @@ Other changes:
    you can disable a feature with:
      { stylename => 0 }
 
- - for vertical charts, allow the outline of the graph area
-   (graph_outline) to be disabled (with nograph_outline in features.)
+ - for vertical and horizontal charts, allow the outline of the graph
+   area (graph_outline) to be disabled (with nograph_outline in
+   features.) or styled (graph.outline)
 
- - for vertical charts, allow the fill of the graph area to be
-   controlled separately from the base bg (graph.fill)
+ - for vertical and horizontal charts, allow the fill of the graph
+   area to be controlled separately from the base bg (graph.fill)
 
  - tests
 
@@ -37,22 +43,12 @@ Bug fixes:
 
  - make draw() idempotent for vertical charts
 
- - multiple calls to draw() no longer return the same image
+ - multiple calls to draw() no longer return the same image object
 
  - labels supplied to draw() are now used for vertical and horizontal
    charts
 
 TODO:
-
- - changes from Vertical into Horizontal too:
-
-   - gridlines control
-
-   - chart area outline control
-
-   - line style for gridlines
-
-   - line style for chart area outline
 
  - control of drawing markers for:
 
@@ -65,14 +61,6 @@ TODO:
  - gap between tic and labels
 
  - tests:
-
-   - gridlines control for h
-
-   - gridlines styling for h
-
-   - graph area outline control for h
-
-   - graph area outline style for h
 
    - test idempotent for h
 

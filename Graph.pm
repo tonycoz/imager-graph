@@ -2519,8 +2519,14 @@ sub _box {
       $self->_line(x1 => $xmin+1, y1 => $ymax, x2 => $xmax-1, y2 => $ymax, %work_opts);
     }
     $self->_line(x1 => $xmin, y1 => $ymin, x2 => $xmin, y2 => $ymax, %work_opts);
-    return $self->_line(x1 => $xmin, y1 => $ymin, x2 => $xmin, y2 => $ymax, %work_opts);
+    return $self->_line(x1 => $xmax, y1 => $ymin, x2 => $xmax, y2 => $ymax, %work_opts);
   }
+}
+
+sub _feature_enabled {
+  my ($self, $name) = @_;
+
+  return $self->{_style}{features}{$name};
 }
 
 1;

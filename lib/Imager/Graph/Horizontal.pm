@@ -32,18 +32,18 @@ sub add_data_series {
   return;
 }
 
-=item add_column_data_series(\@data, $series_name)
+=item add_bar_data_series(\@data, $series_name)
 
-Add a column data series to the graph.
+Add a bar data series to the graph.
 
 =cut
 
-sub add_column_data_series {
+sub add_bar_data_series {
   my $self = shift;
   my $data_ref = shift;
   my $series_name = shift;
 
-  $self->_add_data_series('column', $data_ref, $series_name);
+  $self->_add_data_series('bar', $data_ref, $series_name);
 
   return;
 }
@@ -119,7 +119,7 @@ sub draw {
 
   # Scale the graph box down to the widest graph that can cleanly hold the # of columns.
   return unless $self->_get_data_range();
-  $self->_remove_tics_from_chart_box(\@chart_box);
+  $self->_remove_tics_from_chart_box(\@chart_box, \%opts);
   my $column_count = $self->_get_column_count();
 
   my $width = $self->_get_number('width');
@@ -140,31 +140,37 @@ sub draw {
   my $tic_distance = int(($graph_width -1) / ($tic_count - 1));
   $graph_width = $tic_distance * ($tic_count - 1);
 
-  my $bottom = $chart_box[1];
+  my $top = $chart_box[1];
   my $left   = $chart_box[0];
 
   $self->{'_style'}{'graph_width'} = $graph_width;
   $self->{'_style'}{'graph_height'} = $graph_height;
 
-  my @graph_box = ($left, $bottom, $left + $graph_width, $bottom + $graph_height);
+  my @graph_box = ($left, $top, $left + $graph_width, $top + $graph_height);
+
   $self->_set_graph_box(\@graph_box);
 
-  $img->box(
-            color   => $self->_get_color('outline.line'),
-            xmin    => $left,
-            xmax    => $left+$graph_width,
-            ymin    => $bottom,
-            ymax    => $bottom+$graph_height,
-            );
+  my @fill_box = @graph_box;
+
+  if ($self->_feature_enabled("graph_outline")) {
+    my @line = $self->_get_line("graph.outline")
+      or return;
+
+    $self->_box(
+		@line,
+		box => \@fill_box,
+		img => $img,
+	       );
+    ++$fill_box[0];
+    ++$fill_box[1];
+    --$fill_box[2];
+    --$fill_box[3];
+  }
 
   $img->box(
-            color   => $self->_get_color('bg'),
-            xmin    => $left + 1,
-            xmax    => $left+$graph_width - 1,
-            ymin    => $bottom + 1,
-            ymax    => $bottom+$graph_height-1 ,
-            filled  => 1,
-            );
+	    $self->_get_fill("graph.fill"),
+	    box => \@fill_box,
+	   );
 
   my $min_value = $self->_get_min_value();
   my $max_value = $self->_get_max_value();
@@ -180,18 +186,20 @@ sub draw {
             color   => $self->_get_color('negative_bg'),
             xmin    => $left+1,
             xmax    => $zero_position,
-            ymin    => $bottom+1,
-            ymax    => $bottom+$graph_height - 1,
+            ymin    => $top+1,
+            ymax    => $top+$graph_height - 1,
             filled  => 1,
     );
     $img->line(
             x1 => $zero_position,
-            y1 => $bottom,
+            y1 => $top,
             x2 => $zero_position,
-            y2 => $bottom + $graph_height,
+            y2 => $top + $graph_height,
             color => $self->_get_color('outline.line'),
     );
   }
+
+  $self->_reset_series_counter();
 
   if ($self->_get_data_series()->{'bar'}) {
     $self->_draw_bars();
@@ -203,8 +211,8 @@ sub draw {
   if ($self->_get_x_tics()) {
     $self->_draw_x_tics();
   }
-  if ($self->_get_labels()) {
-    $self->_draw_y_tics();
+  if ($self->_get_labels(\%opts)) {
+    $self->_draw_y_tics(\%opts);
   }
 
   return $self->_get_image();
@@ -640,10 +648,29 @@ sub _add_data_series {
 
 Shows vertical gridlines at the y-tics.
 
+Feature: vertical_gridlines
+
 =cut
 
 sub show_vertical_gridlines {
     $_[0]->{'custom_style'}{features}{'vertical_gridlines'} = 1;
+}
+
+=item set_vertical_gridline_style(color => ..., style => ...)
+
+Set the color and style of the lines drawn for gridlines.
+
+Style equivalent: vgrid
+
+=cut
+
+sub set_vertical_gridline_style {
+  my ($self, %opts) = @_;
+
+  $self->{custom_style}{vgrid} ||= {};
+  @{$self->{custom_style}{vgrid}}{keys %opts} = values %opts;
+
+  return 1;
 }
 
 =item use_automatic_axis()
@@ -677,11 +704,10 @@ sub _get_x_tics {
 }
 
 sub _remove_tics_from_chart_box {
-  my $self = shift;
-  my $chart_box = shift;
+  my ($self, $chart_box, $opts) = @_;
 
   # XXX - bad default
-  my $tic_width = $self->_get_y_tic_width() || 10;
+  my $tic_width = $self->_get_y_tic_width($opts) || 10;
   my @y_tic_box = ($chart_box->[0], $chart_box->[1], $chart_box->[0] + $tic_width, $chart_box->[3]);
 
   # XXX - bad default
@@ -709,9 +735,9 @@ sub _remove_tics_from_chart_box {
 }
 
 sub _get_y_tic_width {
-  my $self = shift;
+  my ($self, $opts) = @_;
 
-  my $labels = $self->_get_labels();
+  my $labels = $self->_get_labels($opts);
 
   if (!$labels) {
     return;
@@ -764,13 +790,13 @@ sub _get_x_tic_height {
 }
 
 sub _draw_y_tics {
-  my $self = shift;
+  my ($self, $opts) = @_;
 
   my $img = $self->_get_image();
   my $graph_box = $self->_get_graph_box();
   my $image_box = $self->_get_image_box();
 
-  my $labels = $self->_get_labels();
+  my $labels = $self->_get_labels($opts);
 
   my $tic_count = (scalar @$labels) - 1;
 
@@ -859,7 +885,7 @@ sub _draw_x_tics {
 
     if ($show_gridlines && $x1 != $graph_box->[0] && $x1 != $graph_box->[2]) {
       $self->_line(x1 => $x1, x2 => $x1,
-		   y1 => $y1, y2 => $y2,
+		   y1 => $graph_box->[1], y2 => $graph_box->[3],
 		   img => $img,
 		   @grid_line);
     }
@@ -898,7 +924,22 @@ sub _get_min_value      { return $_[0]->{'min_value'} }
 sub _get_max_value      { return $_[0]->{'max_value'} }
 sub _get_image_box      { return $_[0]->{'image_box'} }
 sub _get_graph_box      { return $_[0]->{'graph_box'} }
+sub _reset_series_counter { $_[0]->{series_counter} = 0 }
 sub _get_series_counter { return $_[0]->{'series_counter'} }
+
+sub _style_defs {
+  my ($self) = @_;
+
+  my %work = %{$self->SUPER::_style_defs()};
+  push @{$work{features}}, qw/graph_outline graph_fill/;
+  $work{vgrid} =
+    {
+     color => "lookup(fg)",
+     style => "solid",
+    };
+
+  return \%work;
+}
 
 sub _composite {
   my ($self) = @_;
