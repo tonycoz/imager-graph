@@ -21,7 +21,7 @@ my $font = Imager::Font::Test->new();
 my @data = ( 100, 180, 80, 20, 2, 1, 0.5 );
 my @labels = qw(alpha beta gamma delta epsilon phi gi);
 
-plan tests => 35;
+plan tests => 41;
 
 my $pie = Imager::Graph::Pie->new;
 ok($pie, "creating pie chart object");
@@ -226,6 +226,48 @@ cmpimg($img6, "testimg/t10_hlegend.png", 550_000);
   my $im = $pie->draw(data => [ 0, 0, 0 ]);
   ok(!$im, "fail to draw with all zero values");
   is($pie->error, "Sum of all data values is zero", "check message");
+}
+
+{
+  # test methods used to set features
+  # adds test coverage for otherwise uncovered methods
+  my $pie = Imager::Graph::Pie->new;
+  $pie->add_data_series(\@data);
+  $pie->set_labels(\@labels);
+  $pie->set_font($font);
+  $pie->set_style("mono");
+  $pie->show_callouts_onAll_segments();
+  $pie->show_label_percentages();
+  $pie->set_legend_horizontal_align("right");
+  $pie->set_legend_vertical_align("bottom");
+  my $im = $pie->draw();
+
+  ok($im, "made mono test using methods");
+  cmpimg($im, "testimg/t10_mono.png", 550_00);
+}
+
+{
+  # more method coverage
+  my $pie = Imager::Graph::Pie->new;
+  $pie->add_data_series(\@data);
+  $pie->set_labels(\@labels);
+  $pie->set_font($font);
+  $pie->set_style("fount_lin");
+  $pie->show_legend();
+  $pie->show_only_label_percentages();
+  $pie->set_legend_vertical_align("center");
+  my $im = $pie->draw();
+
+  ok($im, "made lin_found test using methods");
+  cmpimg($im, "testimg/t10_lin_fount.png", 180_00);
+}
+
+{
+  my $pie = Imager::Graph::Pie->new;
+  my $im = $pie->draw(width => -1, data => \@data);
+  ok(!$im, "shouldn't be able to create neg width image");
+  print "# ", $pie->error, "\n";
+  cmp_ok($pie->error, '=~', qr/^Error creating image/, "check error message");
 }
 
 sub cmpimg {
