@@ -10,9 +10,6 @@ More cool changes from Patrick Michaud:
  - Area charts
    https://rt.cpan.org/Ticket/Display.html?id=7
 
- - Imager::Graph::Horizontal::add_column_data_series() renamed to
-   add_bar_data_series() and now adds the series as a "bar" series.
-
 Other changes:
 
  - horizonal_gridlines (vertical charts) and vertical_gridlines
@@ -35,6 +32,7 @@ Other changes:
  - for vertical and horizontal charts, allow the fill of the graph
    area to be controlled separately from the base bg (graph.fill)
 
+
  - tests
 
 Bug fixes:
@@ -48,6 +46,10 @@ Bug fixes:
  - labels supplied to draw() are now used for vertical and horizontal
    charts
 
+ - Imager::Graph::Horizontal::add_column_data_series() renamed to
+   add_bar_data_series() and now adds the series as a "bar" series.
+   add_column_data_series() did nothing useful for a horizontal chart.
+
 TODO:
 
  - control of drawing markers for:
@@ -56,21 +58,13 @@ TODO:
 
    - line
 
- - tic size/positioning
-
- - gap between tic and labels
-
- - tests:
-
-   - test idempotent for h
+ - test line markers
 
  - document:
 
    - features: horizontal_gridlines, graph_outline, graph_fill
 
    - graph outline and gridline styles
-
-   - document no{feature}
 
 
 Imager-Graph 0.07 - 21 May 2009

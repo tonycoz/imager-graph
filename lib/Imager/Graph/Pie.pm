@@ -58,6 +58,9 @@ your graph.  The features you can use with pie graphs are:
 
 =item show_callouts_onAll_segments()
 
+Feature: allcallouts.
+X<allcallouts>X<features, allcallouts>
+
 all labels are presented as callouts
 
 =cut
@@ -67,6 +70,9 @@ sub show_callouts_onAll_segments {
 }
 
 =item show_only_label_percentages()
+
+Feature: labelspconly
+X<labelspconly>X<features, labelspconly>
 
 only show the percentage, not the labels.
 
@@ -78,6 +84,9 @@ sub show_only_label_percentages {
 
 =item show_label_percentages()
 
+Feature: labelspc
+X<labelspc>X<features, labelspc>
+
 adds the percentage of the pie to each label.
 
 =cut
@@ -88,7 +97,7 @@ sub show_label_percentages {
 
 =back
 
-Additionally, arguments can be added to draw() :
+Inherited features:
 
 =over
 
@@ -100,18 +109,6 @@ adds a legend to your graph.  Requires the labels parameter
 
 labels each segment of the graph.  If the label doesn't fit inside the
 segment it is presented as a callout.
-
-=item labelspc
-
-adds the percentage of the pie to each label.
-
-=item labelspconly
-
-the segments are labels with their percentages only.
-
-=item allcallouts
-
-all labels are presented as callouts
 
 =item outline
 

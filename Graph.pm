@@ -618,14 +618,21 @@ sub set_data_line_colors {
 =head1 FEATURES
 
 Each graph type has a number of features.  These are used to add
-various items that are displayed in the graph area.  Some common
-methods are:
+various items that are displayed in the graph area.
+
+Features can be controlled by calling methods on the graph object, or
+by passing a C<features> parameter to draw().
+
+Some common features are:
 
 =over
 
 =item show_legend()
 
-adds a box containing boxes filled with the data filess, with
+Feature: legend
+X<legend><features, legend>
+
+adds a box containing boxes filled with the data fills, with
 the labels provided to the draw method.  The legend will only be
 displayed if both the legend feature is enabled and labels are
 supplied.
@@ -638,7 +645,12 @@ sub show_legend {
 
 =item show_outline()
 
-draws a border around the data areas.
+Feature: outline
+X<outline>X<features, outline>
+
+If enabled, draw a border around the elements representing data in the
+graph, eg. around each pie segments on a pie chart, around each bar on
+a bar chart.
 
 =cut
 
@@ -648,10 +660,18 @@ sub show_outline {
 
 =item show_labels()
 
+Feature: labels
+X<labels>X<features, labels>
+
 labels each data fill, usually by including text inside the data fill.
 If the text does not fit in the fill, they could be displayed in some
-other form, eg. as callouts in a pie graph.  There usually isn't much
-point in including both labels and a legend.
+other form, eg. as callouts in a pie graph.
+
+For pie charts there isn't much point in enabling both the C<legend>
+and C<labels> features.
+
+For other charts, the labels label the independent variable, while the
+legend describes the color used to plot the dependent variables.
 
 =cut
 
@@ -660,6 +680,9 @@ sub show_labels {
 }
 
 =item show_drop_shadow()
+
+Feature: dropshadow
+X<dropshadow>X<features, dropshadow>
 
 a simple drop shadow is shown behind some of the graph elements.
 
@@ -671,7 +694,11 @@ sub show_drop_shadow {
 
 =item reset_features()
 
-Unsets all of the features
+Unsets all of the features.
+
+Note: this disables all features, even those enabled by default for a
+style.  They can then be enabled by calling feature methods or by
+supplying a C<feature> parameter to the draw() method.
 
 =cut
 
@@ -682,27 +709,27 @@ sub reset_features {
 
 =back
 
-Additionally, features can be set by passing them into the draw() method:
+Additionally, features can be set by passing them into the draw()
+method, named as above:
 
 =over
 
-=item legend
+=item *
 
-adds a box containing boxes filled with the data filess, with
-the labels provided to the draw method.  The legend will only be
-displayed if both the legend feature is enabled and labels are
-supplied.
+if supplied as an array reference, then any element C<no>I<featurename> will
+disable that feature, while an element I<featurename> will enable it.
 
-=item labels
+=item *
 
-labels each data fill, usually by including text inside the data fill.
-If the text does not fit in the fill, they could be displayed in some
-other form, eg. as callouts in a pie graph.  There usually isn't much
-point in including both labels and a legend.
+if supplied as a scalar, it is treated as if it were a reference to
+an array containing only that scalar.
 
-=item dropshadow
+=item *
 
-a simple drop shadow is shown behind some of the graph elements.
+if supplied as a hash reference, then a C<reset> key with a true value
+will avoid inheriting any default features, a key I<feature> with a
+false value will disable that feature and a key I<feature> with a true
+value will enable that feature.
 
 =back
 
@@ -809,7 +836,7 @@ The background of the graph.
 
 Used to define basic background and foreground colors for the graph.
 The bg color may be used for the background of the graph, and is used
-as a default for the background of hatcheed fills.  The fg is used as
+as a default for the background of hatched fills.  The fg is used as
 the default for line and text colors.
 
 =item font
@@ -911,7 +938,7 @@ Defaults to 'right' and 'top'.
 
 =item padding
 
-the gap between the legend patches and text and the outside of it's
+the gap between the legend patches and text and the outside of its
 box, or to the legend border, if any.
 
 =item outsidepadding
@@ -1523,8 +1550,14 @@ $styles{'ocean_flat'} = {
 
 =item $self->_style_setup(\%opts)
 
-Uses the values from %opts to build a customized hash describing the
-way the graph should be drawn.
+Uses the values from %opts, the custom style set by methods, the style
+set by the style parameter or the set_style() method and the built in
+chart defaults to build a working style.
+
+The working style features member is also populated with the active
+features for the chart.
+
+The working style is stored in the C<_style> member of $self.
 
 =cut
 
@@ -2522,6 +2555,12 @@ sub _box {
     return $self->_line(x1 => $xmax, y1 => $ymin, x2 => $xmax, y2 => $ymax, %work_opts);
   }
 }
+
+=item _feature_enabled($feature_name)
+
+Check if the given feature is enabled in the work style.
+
+=cut
 
 sub _feature_enabled {
   my ($self, $name) = @_;

@@ -2,7 +2,35 @@ package Imager::Graph::Vertical;
 
 =head1 NAME
 
-  Imager::Graph::Vertical- A super class for line/bar/column charts
+Imager::Graph::Vertical- A super class for line/bar/column/area charts
+
+=head1 SYNOPSIS
+
+  use Imager::Graph::Vertical;
+
+  my $vert = Imager::Graph::Vertical->new;
+  $vert->add_column_data_series(\@data, "My data");
+  $vert->add_area_data_series(\@data2, "Area data");
+  $vert->add_stacked_column_data_series(\@data3, "stacked data");
+  $vert->add_line_data_series(\@data4, "line data");
+  my $img = $vert->draw();
+
+  use Imager::Graph::Column;
+  my $column = Imager::Graph::Column->new;
+  $column->add_data_series(\@data, "my data");
+  my $img = $column->draw();
+
+=head1 DESCRIPTION
+
+This is a base class that implements the functionality for column,
+stacked column, line and area charts where the dependent variable is
+represented in changes in the vertical position.
+
+The subclasses, L<Imager::Graph::Column>,
+L<Imager::Graph::StackedColumn>, L<Imager::Graph::Line> and
+L<Imager::Graph::Area> simply provide default data series types.
+
+=head1 METHODS
 
 =cut
 
@@ -13,11 +41,12 @@ use Imager::Graph;
 
 use constant STARTING_MIN_VALUE => 99999;
 
-=over 4
+=over
 
 =item add_data_series(\@data, $series_name)
 
-Add a data series to the graph, of the default type.
+Add a data series to the graph, of the default type.  This requires
+that the graph object be one of the derived graph classes.
 
 =cut
 
@@ -96,10 +125,10 @@ sub add_area_data_series {
   return;
 }
 
-
 =item set_y_max($value)
 
-Sets the maximum y value to be displayed.  This will be ignored if the y_max is lower than the highest value.
+Sets the maximum y value to be displayed.  This will be ignored if the
+y_max is lower than the highest value.
 
 =cut
 
@@ -109,7 +138,8 @@ sub set_y_max {
 
 =item set_y_min($value)
 
-Sets the minimum y value to be displayed.  This will be ignored if the y_min is higher than the lowest value.
+Sets the minimum y value to be displayed.  This will be ignored if the
+y_min is higher than the lowest value.
 
 =cut
 
@@ -119,7 +149,8 @@ sub set_y_min {
 
 =item set_column_padding($int)
 
-Sets the padding between columns.  This is a percentage of the column width.  Defaults to 0.
+Sets the padding between columns.  This is a percentage of the column
+width.  Defaults to 0.
 
 =cut
 
@@ -129,9 +160,13 @@ sub set_column_padding {
 
 =item set_range_padding($percentage)
 
-Sets the padding to be used, as a percentage.  For example, if your data ranges from 0 to 10, and you have a 20 percent padding, the y axis will go to 12.
+Sets the padding to be used, as a percentage.  For example, if your
+data ranges from 0 to 10, and you have a 20 percent padding, the y
+axis will go to 12.
 
-Defaults to 10.  This attribute is ignored for positive numbers if set_y_max() has been called, and ignored for negative numbers if set_y_min() has been called.
+Defaults to 10.  This attribute is ignored for positive numbers if
+set_y_max() has been called, and ignored for negative numbers if
+set_y_min() has been called.
 
 =cut
 
@@ -720,8 +755,6 @@ sub _draw_area {
   return 1;
 }
 
-
-
 sub _line_marker {
   my ($self, $index) = @_;
 
@@ -978,9 +1011,16 @@ sub _add_data_series {
   return;
 }
 
+=back
+
+=head1 FEATURES
+
 =over
 
 =item show_horizontal_gridlines()
+
+Feature: horizontal_gridlines
+X<horizontal_gridlines>X<features, horizontal_gridlines>
 
 Enables the C<horizontal_gridlines> feature, which shows horizontal
 gridlines at the y-tics.
@@ -997,6 +1037,9 @@ sub show_horizontal_gridlines {
 
 =item set_horizontal_gridline_style(style => $style, color => $color)
 
+Style: hgrid.
+X<hgrid>X<style parameters, hgrid>
+
 Set the style and color of horizonal gridlines.
 
 See: L<Imager::Graph/"Line styles">
@@ -1012,9 +1055,79 @@ sub set_horizontal_gridline_style {
   return 1;
 }
 
+=item show_graph_outline($flag)
+
+Feature: graph_outline
+X<graph_outline>X<features, graph_outline>
+
+If no flag is supplied, unconditionally enable the graph outline.
+
+If $flag is supplied, enable/disable the graph_outline feature based
+on that.
+
+Enabled by default.
+
+=cut
+
+sub show_graph_outline {
+  my ($self, $flag) = @_;
+
+  @_ == 1 and $flag = 1;
+
+  $self->{custom_style}{features}{graph_outline} = $flag;
+
+  return 1;
+}
+
+=item set_graph_outline_style(color => ...)
+
+=item set_graph_outline_style(style => ..., color => ...)
+
+Style: graph.outline
+X<graph.outline>X<style parameters, graph.outline>
+
+Sets the style of the graph outline.
+
+Default: the style C<fg>.
+
+=cut
+
+sub set_graph_outline_style {
+  my ($self, %opts) = @_;
+
+  $self->{custom_style}{graph}{outline} = \%opts;
+
+  return 1;
+}
+
+=item set_graph_fill_style(I<fill parameters>)
+
+Style: graph.fill
+X<graph.fill>X<style parameters, graph.fill>
+
+Set the fill used to fill the graph data area.
+
+Default: the style C<bg>.
+
+eg.
+
+  $graph->set_graph_fill_style(solid => "FF000020", combine => "normal");
+
+=cut
+
+sub set_graph_fill_style {
+  my ($self, %opts) = @_;
+
+  $self->{custom_style}{graph}{fill} = \%opts;
+
+  return 1;
+}
+
 =item use_automatic_axis()
 
-Automatically scale the Y axis, based on L<Chart::Math::Axis>.  If Chart::Math::Axis isn't installed, this sets an error and returns undef.  Returns 1 if it is installed.
+Automatically scale the Y axis, based on L<Chart::Math::Axis>.  If
+Chart::Math::Axis isn't installed, this sets an error and returns
+undef.  Returns 1 if it is installed.
 
 =cut
 
@@ -1030,7 +1143,8 @@ sub use_automatic_axis {
 
 =item set_y_tics($count)
 
-Set the number of Y tics to use.  Their value and position will be determined by the data range.
+Set the number of Y tics to use.  Their value and position will be
+determined by the data range.
 
 =cut
 
