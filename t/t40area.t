@@ -29,7 +29,7 @@ my @data2 =
   );
 my @labels = qw(alpha beta gamma delta epsilon phi gi);
 
-plan tests => 7;
+plan tests => 8;
 
 {
   my $area = Imager::Graph::Area->new;
@@ -79,7 +79,7 @@ plan tests => 7;
   $area->use_automatic_axis();
   my $img2 = $area->draw
     (
-     features => [ "horizontal_gridlines" ],
+     features => [ "horizontal_gridlines", "areamarkers" ],
      labels => \@labels,
      font => $font,
      hgrid => { style => "dashed", color => "#888" },
@@ -91,6 +91,8 @@ plan tests => 7;
   ok($img2, "made second area chart image");
   ok($img2->write(file => "testout/t40area2.ppm"),
      "save to file");
+
+  cmpimg($img2, "testimg/t40area2.png");
 }
 
 END {

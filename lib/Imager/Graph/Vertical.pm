@@ -744,9 +744,11 @@ sub _draw_area {
     my @fill = $self->_area_data_fill($series_counter, [$left, $bottom, $right, $top]);
     $img->polygon(points => [@polygon_points], @fill);
 
-    push @marker_positions, [$x2, $y2];
-    foreach my $position (@marker_positions) {
-      $self->_draw_line_marker($position->[0], $position->[1], $series_counter);
+    if ($self->_feature_enabled("areamarkers")) {
+      push @marker_positions, [$x2, $y2];
+      foreach my $position (@marker_positions) {
+	$self->_draw_line_marker($position->[0], $position->[1], $series_counter);
+      }
     }
     $series_counter++;
   }
@@ -1053,6 +1055,23 @@ sub set_graph_fill_style {
   return 1;
 }
 
+=item show_area_markers()
+
+Feature: areamarkers.
+
+Draw line markers along the top of area data series.
+
+=cut
+
+sub show_area_markers {
+  my ($self) = @_;
+
+  $self->{custom_style}{features}{areamarkers} = 1;
+
+  return 1;
+}
+
+
 =item use_automatic_axis()
 
 Automatically scale the Y axis, based on L<Chart::Math::Axis>.  If
@@ -1069,7 +1088,6 @@ sub use_automatic_axis {
   $_[0]->{'custom_style'}->{'automatic_axis'} = 1;
   return 1;
 }
-
 
 =item set_y_tics($count)
 
