@@ -1,6 +1,7 @@
 Changes				A list of changes :)
 Graph.pm
 ImUgly.ttf			A moderately ugly font
+lib/Imager/Graph/Area.pm
 lib/Imager/Graph/Bar.pm
 lib/Imager/Graph/Column.pm
 lib/Imager/Graph/Horizontal.pm
@@ -20,6 +21,7 @@ t/t11line.t
 t/t12column.t
 t/t13stacked_col.t
 t/t14bar.t
+t/t15line_horizontal.t
 t/t20api.t
 t/t21style_api.t
 t/t30many_points.t
@@ -27,6 +29,7 @@ t/t31tic_color.t
 t/t32series_labels.t
 t/t33_long_labels.t
 t/t34horizontal_many_points.t
+t/t40area.t
 t/t91pod.t
 t/t93podcover.t
 testimg/t10_hlegend.png
@@ -43,4 +46,6 @@ testimg/t31tic_color_CMA.ppm
 testimg/t32_series.ppm
 testimg/t33_long_labels.ppm
 testimg/t34_points.ppm
+testimg/t40area1.png
+testimg/t40area2.png
 TODO
