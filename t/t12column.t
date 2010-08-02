@@ -13,7 +13,7 @@ use Test::More;
 
 use Imager qw(:handy);
 
-plan tests => 3;
+plan tests => 5;
 
 my @warned;
 local $SIG{__WARN__} =
@@ -31,16 +31,32 @@ my $font = Imager::Font::Test->new();
 my @data = ( 100, 180, 80, 20, 2, 1, 0.5 );
 my @labels = qw(alpha beta gamma delta epsilon phi gi);
 
-my $column = Imager::Graph::Column->new();
-ok($column, "creating column chart object");
+{
+  my $column = Imager::Graph::Column->new();
+  ok($column, "creating column chart object");
 
-$column->add_data_series(\@data);
-$column->set_labels(\@labels);
+  $column->add_data_series(\@data);
+  $column->set_labels(\@labels);
 
-my $img1 = $column->draw();
-ok($img1, "drawing column chart");
+  my $img1 = $column->draw();
+  ok($img1, "drawing column chart");
 
-$img1->write(file=>'testout/t12_basic.ppm') or die "Can't save img1: ".$img1->errstr."\n";
+  $img1->write(file=>'testout/t12_column.ppm') or die "Can't save img1: ".$img1->errstr."\n";
+}
+
+{
+  my $column = Imager::Graph::Column->new();
+  ok($column, "creating column chart object");
+
+  $column->add_data_series(\@data);
+  $column->add_data_series([ -50, -30, 20, 10, -10, 25, 10 ]);
+  $column->set_labels(\@labels);
+
+  my $img1 = $column->draw(features => "outline");
+  ok($img1, "drawing column chart");
+
+  $img1->write(file=>'testout/t12_column2.ppm') or die "Can't save img1: ".$img1->errstr."\n";
+}
 
 unless (is(@warned, 0, "should be no warnings")) {
   diag($_) for @warned;

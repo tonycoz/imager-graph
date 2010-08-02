@@ -459,9 +459,11 @@ sub _draw_lines {
 
     my $x2 = $left + ($value_range - $data[$data_size - 1] + $min_value)/$value_range * $graph_width;
 
-    push @marker_positions, [$x2, $y2];
-    foreach my $position (@marker_positions) {
-      $self->_draw_line_marker($position->[0], $position->[1], $series_counter);
+    if ($self->_feature_enabled("linemarkers")) {
+      push @marker_positions, [$x2, $y2];
+      foreach my $position (@marker_positions) {
+	$self->_draw_line_marker($position->[0], $position->[1], $series_counter);
+      }
     }
     $series_counter++;
   }
@@ -599,6 +601,28 @@ sub set_vertical_gridline_style {
 
   $self->{custom_style}{vgrid} ||= {};
   @{$self->{custom_style}{vgrid}}{keys %opts} = values %opts;
+
+  return 1;
+}
+
+=item show_line_markers()
+
+=item show_line_markers($value)
+
+Feature: linemarkers.
+
+If $value is missing or true, draw markers on a line data series.
+
+Note: line markers are drawn by default.
+
+=cut
+
+sub show_line_markers {
+  my ($self, $value) = @_;
+
+  @_ > 1 or $value = 1;
+
+  $self->{custom_style}{features}{linemarkers} = $value;
 
   return 1;
 }
@@ -861,7 +885,7 @@ sub _style_defs {
   my ($self) = @_;
 
   my %work = %{$self->SUPER::_style_defs()};
-  push @{$work{features}}, qw/graph_outline graph_fill/;
+  push @{$work{features}}, qw/graph_outline graph_fill linemarkers/;
   $work{vgrid} =
     {
      color => "lookup(fg)",

@@ -38,6 +38,7 @@ use strict;
 use vars qw(@ISA);
 use Imager::Graph;
 @ISA = qw(Imager::Graph);
+use Imager::Fill;
 
 use constant STARTING_MIN_VALUE => 99999;
 
@@ -639,9 +640,11 @@ sub _draw_lines {
 
     my $y2 = $bottom + ($value_range - $data[$data_size - 1] + $min_value)/$value_range * $graph_height;
 
-    push @marker_positions, [$x2, $y2];
-    foreach my $position (@marker_positions) {
-      $self->_draw_line_marker($position->[0], $position->[1], $series_counter);
+    if ($self->_feature_enabled("linemarkers")) {
+      push @marker_positions, [$x2, $y2];
+      foreach my $position (@marker_positions) {
+	$self->_draw_line_marker($position->[0], $position->[1], $series_counter);
+      }
     }
     $series_counter++;
   }
@@ -1057,20 +1060,50 @@ sub set_graph_fill_style {
 
 =item show_area_markers()
 
+=item show_area_markers($value)
+
 Feature: areamarkers.
 
-Draw line markers along the top of area data series.
+If $value is missing or true, draw markers along the top of area data
+series.
+
+eg.
+
+  $chart->show_area_markers();
 
 =cut
 
 sub show_area_markers {
-  my ($self) = @_;
+  my ($self, $value) = @_;
 
-  $self->{custom_style}{features}{areamarkers} = 1;
+  @_ > 1 or $value = 1;
+
+  $self->{custom_style}{features}{areamarkers} = $value;
 
   return 1;
 }
 
+=item show_line_markers()
+
+=item show_line_markers($value)
+
+Feature: linemarkers.
+
+If $value is missing or true, draw markers on a line data series.
+
+Note: line markers are drawn by default.
+
+=cut
+
+sub show_line_markers {
+  my ($self, $value) = @_;
+
+  @_ > 1 or $value = 1;
+
+  $self->{custom_style}{features}{linemarkers} = $value;
+
+  return 1;
+}
 
 =item use_automatic_axis()
 
@@ -1376,7 +1409,7 @@ sub _style_defs {
     {
      opacity => 0.5,
     };
-  push @{$work{features}}, qw/graph_outline graph_fill/;
+  push @{$work{features}}, qw/graph_outline graph_fill linemarkers/;
   $work{hgrid} =
     {
      color => "lookup(fg)",
