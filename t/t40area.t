@@ -76,7 +76,7 @@ plan tests => 8;
   ok($area, "made area chart object");
   $area->add_data_series(\@data1, "Test area");
   $area->show_horizontal_gridlines();
-  $area->use_automatic_axis();
+  $area->set_y_tics(10);
   my $img2 = $area->draw
     (
      features => [ "horizontal_gridlines", "areamarkers" ],
