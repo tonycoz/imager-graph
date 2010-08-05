@@ -1,5 +1,15 @@
 Revision history for Perl extension Imager::Graph.
 
+Imager-Graph 0.09 - 05 Aug 2010
+=================
+
+Bug fixes:
+
+ - refresh the t10_lin_fount test image
+
+ - avoid use_automatic_axis() for the second area test, since systems
+   without Chart::Math::Axis will produce a different image.
+
 Imager-Graph 0.08 - 03 Aug 2010
 =================
 
