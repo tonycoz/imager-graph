@@ -5,6 +5,9 @@ Imager-Graph 0.10 - unreleased
 
  - loosen up image comparisons - the rounding change in Imager 0.90
    made small changes to many pixels in fountain fills
+   https://rt.cpan.org/Ticket/Display.html?id=76955
+   It should fix the following too.
+   https://rt.cpan.org/Ticket/Display.html?id=68031
 
 Imager-Graph 0.09 - 05 Aug 2010
 =================
