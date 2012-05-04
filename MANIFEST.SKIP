@@ -1,7 +1,5 @@
-^\.svn\b
 ^testout/
 ~$
-/\.svn/
 ^blib/
 ^Makefile$
 ^Makefile\.old$
@@ -10,6 +8,8 @@
 \.rej$
 \.bak$
 ^Imager-Graph
+^\.git/
+^\.gitignore$
 
 # t/x tests aren't distributed
 ^t/x
