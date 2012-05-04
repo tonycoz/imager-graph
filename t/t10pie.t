@@ -259,7 +259,7 @@ cmpimg($img6, "testimg/t10_hlegend.png", 550_000);
   my $im = $pie->draw();
 
   ok($im, "made lin_found test using methods");
-  cmpimg($im, "testimg/t10_lin_fount.png", 180_00);
+  cmpimg($im, "testimg/t10_lin_fount.png", 180_000);
 }
 
 {

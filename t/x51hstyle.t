@@ -53,7 +53,7 @@ print "# Font type: ",ref $font,"\n";
     ok($img1->write(file => "testout/x51col_def.ppm"),
        "save to testout");
 
-    cmpimg($img1, "xtestimg/x51col_def.png");
+    cmpimg($img1, "xtestimg/x51col_def.png", 80_000);
   }
 
   { # no outline
@@ -73,7 +73,7 @@ print "# Font type: ",ref $font,"\n";
     ok($img2->write(file => "testout/x51col_noout.ppm"),
        "save to testout");
 
-    cmpimg($img2, "xtestimg/x51col_noout.png");
+    cmpimg($img2, "xtestimg/x51col_noout.png", 80_000);
   }
 
   {
@@ -107,7 +107,7 @@ print "# Font type: ",ref $font,"\n";
     ok($img6, "make chart with dashed outline of graph area");
     ok($img6->write(file => "testout/x51col_dashout.ppm"),
        "save it");
-    cmpimg($img6, "xtestimg/x51col_dashout.png");
+    cmpimg($img6, "xtestimg/x51col_dashout.png", 80_000);
   }
 
   { # no outline, styled fill
@@ -126,7 +126,7 @@ print "# Font type: ",ref $font,"\n";
     ok($img7, "made the image");
     ok($img7->write(file => "testout/x51col_fill.ppm"),
        "save it");
-    cmpimg($img7, "xtestimg/x51col_fill.png");
+    cmpimg($img7, "xtestimg/x51col_fill.png", 120_000);
   }
 
   { # gridlines
@@ -142,7 +142,7 @@ print "# Font type: ",ref $font,"\n";
     ok($img8, "made the gridline image");
     ok($img8->write(file => "testout/x51col_grid.ppm"),
        "save it");
-    cmpimg($img8, "xtestimg/x51col_grid.png");
+    cmpimg($img8, "xtestimg/x51col_grid.png", 80_000);
   }
 
   { # gridlines (set by method)
@@ -167,7 +167,7 @@ print "# Font type: ",ref $font,"\n";
     ok($img9, "made the gridline image (set by methods)");
     ok($img9->write(file => "testout/x51col_gridm.ppm"),
        "save it");
-    cmpimg($img9, "xtestimg/x51col_grid.png");
+    cmpimg($img9, "xtestimg/x51col_grid.png", 80_000);
   }
 }
 

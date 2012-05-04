@@ -53,7 +53,7 @@ print "# Font type: ",ref $font,"\n";
     ok($img1->write(file => "testout/x50line_def.ppm"),
        "save to testout");
 
-    cmpimg($img1, "xtestimg/x50line_def.png");
+    cmpimg($img1, "xtestimg/x50line_def.png", 60_000);
   }
 
   { # no outline
@@ -73,7 +73,7 @@ print "# Font type: ",ref $font,"\n";
     ok($img2->write(file => "testout/x50line_noout.ppm"),
        "save to testout");
 
-    cmpimg($img2, "xtestimg/x50line_noout.png");
+    cmpimg($img2, "xtestimg/x50line_noout.png", 60_000);
 
     my $img3 = $vert->draw
       (
@@ -129,7 +129,7 @@ print "# Font type: ",ref $font,"\n";
     ok($img6, "make chart with dashed outline of graph area");
     ok($img6->write(file => "testout/x50line_dashout.ppm"),
        "save it");
-    cmpimg($img6, "xtestimg/x50line_dashout.png");
+    cmpimg($img6, "xtestimg/x50line_dashout.png", 80_000);
   }
 
   { # no outline, styled fill
@@ -148,7 +148,7 @@ print "# Font type: ",ref $font,"\n";
     ok($img7, "made the image");
     ok($img7->write(file => "testout/x50line_fill.ppm"),
        "save it");
-    cmpimg($img7, "xtestimg/x50line_fill.png");
+    cmpimg($img7, "xtestimg/x50line_fill.png", 80_000);
   }
 
   { # gridlines
@@ -164,7 +164,7 @@ print "# Font type: ",ref $font,"\n";
     ok($img8, "made the gridline image");
     ok($img8->write(file => "testout/x50line_grid.ppm"),
        "save it");
-    cmpimg($img8, "xtestimg/x50line_grid.png");
+    cmpimg($img8, "xtestimg/x50line_grid.png", 60_000);
 
     # default horizontal gridlines
     my $imgb = $vert->draw
@@ -178,7 +178,7 @@ print "# Font type: ",ref $font,"\n";
     ok($imgb, "made the gridline image");
     ok($imgb->write(file => "testout/x50line_griddef.ppm"),
        "save it");
-    cmpimg($imgb, "xtestimg/x50line_griddef.png");
+    cmpimg($imgb, "xtestimg/x50line_griddef.png", 60_000);
 
   }
 
@@ -204,7 +204,7 @@ print "# Font type: ",ref $font,"\n";
     ok($img9, "made the gridline image (set by methods)");
     ok($img9->write(file => "testout/x50line_gridm.ppm"),
        "save it");
-    cmpimg($img9, "xtestimg/x50line_grid.png");
+    cmpimg($img9, "xtestimg/x50line_grid.png", 60_000);
   }
 }
 

@@ -68,7 +68,7 @@ plan tests => 8;
   ok($img1->write(file => "testout/t40area1.ppm"),
      "save to testout");
 
-  cmpimg($img1, "testimg/t40area1.png");
+  cmpimg($img1, "testimg/t40area1.png", 100_000);
 }
 
 {
@@ -92,7 +92,7 @@ plan tests => 8;
   ok($img2->write(file => "testout/t40area2.ppm"),
      "save to file");
 
-  cmpimg($img2, "testimg/t40area2.png");
+  cmpimg($img2, "testimg/t40area2.png", 80_000);
 }
 
 END {

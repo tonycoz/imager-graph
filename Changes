@@ -1,5 +1,11 @@
 Revision history for Perl extension Imager::Graph.
 
+Imager-Graph 0.10 - unreleased
+=================
+
+ - loosen up image comparisons - the rounding change in Imager 0.90
+   made small changes to many pixels in fountain fills
+
 Imager-Graph 0.09 - 05 Aug 2010
 =================
 

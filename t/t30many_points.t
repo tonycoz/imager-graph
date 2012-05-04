@@ -41,7 +41,7 @@ my $img1 = $line->draw();
 ok($img1, "drawing line chart");
 
 $img1->write(file=>'testout/t30_points.ppm') or die "Can't save img1: ".$img1->errstr."\n";
-cmpimg($img1, 'testimg/t30_points.ppm', 1);
+cmpimg($img1, 'testimg/t30_points.ppm', 40_000);
 
 unless (is(@warned, 0, "should be no warnings")) {
   diag($_) for @warned;

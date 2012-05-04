@@ -43,7 +43,7 @@ my @labels = qw(alpha beta gamma delta epsilon phi gi);
   ok($img1, "drawing bar chart");
 
   $img1->write(file=>'testout/t14_bar.ppm') or die "Can't save img1: ".$img1->errstr."\n";
-  cmpimg($img1, 'testimg/t14_bar.ppm', 1);
+  cmpimg($img1, 'testimg/t14_bar.ppm', 80_000);
 }
 
 { # alternative interfaces
@@ -58,7 +58,7 @@ my @labels = qw(alpha beta gamma delta epsilon phi gi);
   ok($img1, "drawing bar chart");
 
   $img1->write(file=>'testout/t14_bar2.ppm') or die "Can't save img1: ".$img1->errstr."\n";
-  cmpimg($img1, 'testimg/t14_bar.ppm', 1);
+  cmpimg($img1, 'testimg/t14_bar.ppm', 80_000);
 }
 
 unless (is(@warned, 0, "should be no warnings")) {

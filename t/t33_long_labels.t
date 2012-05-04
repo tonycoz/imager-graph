@@ -36,7 +36,7 @@ $graph->set_labels(['AWWWWWWWWWWWWWWA', 'AWWWWWWWWWWWWWWWWWWWWWWWWWWWWWA']);
 
 my $img = $graph->draw() || warn $graph->error;
 
-cmpimg($img, 'testimg/t33_long_labels.ppm', 200);
+cmpimg($img, 'testimg/t33_long_labels.ppm', 200_000);
 $img->write(file=>'testout/t33_long_labels.ppm') or die "Can't save img1: ".$img->errstr."\n";
 
 unless (is(@warned, 0, "should be no warnings")) {
