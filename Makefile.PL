@@ -12,6 +12,18 @@ if ($MM_ver > 6.06) {
 if ($MM_ver >= 6.31) {
   $opts{LICENSE} = 'perl';
 }
+if ($MM_ver >= 6.46) {
+  $opts{META_MERGE} =
+    {
+     license => "perl",
+     resources =>
+     {
+      homepage => "http://imager.perl.org/",
+      repository => "git://git.imager.perl.org/imager.git",
+      bugtracker => "http://rt.cpan.org/NoAuth/Bugs.html?Dist=Imager-Graph",
+     },
+    };
+}
 
 WriteMakefile(
               %opts,
