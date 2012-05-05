@@ -76,7 +76,7 @@ sub set_column_padding {
 
 =item set_negative_background($color)
 
-Sets the background color used below the x axis.
+Sets the background color or fill used below the y axis.
 
 =cut
 
