@@ -15,6 +15,7 @@ MANIFEST
 MANIFEST.SKIP
 README
 t/lib/Imager/Font/Test.pm
+t/lib/Imager/Graph/Test.pm
 t/t00load.t
 t/t10pie.t
 t/t11line.t

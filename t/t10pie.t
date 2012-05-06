@@ -3,6 +3,7 @@ use strict;
 use Imager::Graph::Pie;
 use lib 't/lib';
 use Imager::Font::Test;
+use Imager::Graph::Test qw(cmpimg);
 use Test::More;
 
 -d 'testout' 
@@ -268,22 +269,4 @@ cmpimg($img6, "testimg/t10_hlegend.png", 550_000);
   ok(!$im, "shouldn't be able to create neg width image");
   print "# ", $pie->error, "\n";
   cmp_ok($pie->error, '=~', qr/^Error creating image/, "check error message");
-}
-
-sub cmpimg {
-  my ($img, $file, $limit) = @_;
-
-  $limit ||= 10000;
-
- SKIP:
-  {
-    $Imager::formats{png}
-      or skip("No PNG support", 1);
-
-    my $cmpimg = Imager->new;
-    $cmpimg->read(file=>$file)
-      or return ok(0, "Cannot read $file: ".$cmpimg->errstr);
-    my $diff = Imager::i_img_diff($img->{IMG}, $cmpimg->{IMG});
-    cmp_ok($diff, '<', $limit, "Comparison to $file ($diff)");
-  }
 }

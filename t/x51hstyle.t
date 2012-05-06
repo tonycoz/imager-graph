@@ -4,7 +4,8 @@ use Imager::Graph::Bar;
 use lib 't/lib';
 use Imager::Font::Test;
 use Test::More;
-use Imager::Test qw(is_image_similar is_image);
+use Imager::Test qw(is_image);
+use Imager::Graph::Test 'cmpimg';
 
 -d 'testout' 
   or mkdir "testout", 0700 
@@ -182,20 +183,3 @@ END {
   }
 }
 
-sub cmpimg {
-  my ($img, $file, $limit) = @_;
-
-  $limit ||= 10000;
-
- SKIP:
-  {
-    $Imager::formats{png}
-      or skip("No PNG support", 1);
-
-    my $cmpimg = Imager->new;
-    $cmpimg->read(file=>$file)
-      or return ok(0, "Cannot read $file: ".$cmpimg->errstr);
-    my $diff = Imager::i_img_diff($img->{IMG}, $cmpimg->{IMG});
-    is_image_similar($img, $cmpimg, $limit, "Comparison to $file ($diff)");
-  }
-}

@@ -4,6 +4,7 @@ use Imager::Graph::Line;
 use lib 't/lib';
 use Imager::Font::Test;
 use Test::More;
+use Imager::Graph::Test 'cmpimg';
 
 -d 'testout' 
   or mkdir "testout", 0700 
@@ -48,18 +49,3 @@ cmpimg($img1, 'testimg/t32_series.ppm', 80_000);
 unless (is(@warned, 0, "should be no warnings")) {
   diag($_) for @warned;
 }
-
-
-sub cmpimg {
-  my ($img, $file, $limit) = @_;
-
-  $limit ||= 10000;
-
-  my $cmpimg = Imager->new;
-  $cmpimg->read(file=>$file)
-    or return ok(0, "Cannot read $file: ".$cmpimg->errstr);
-  my $diff = Imager::i_img_diff($img->{IMG}, $cmpimg->{IMG});
-  cmp_ok($diff, '<', $limit, "Comparison to $file ($diff)");
-
-}
-
