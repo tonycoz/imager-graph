@@ -49,10 +49,10 @@ $img1->write(file=>'testout/t31tic_color.ppm') or die "Can't save img1: ".$img1-
 
 eval { require Chart::Math::Axis; };
 if ($@) {
-    cmpimg($img1, 'testimg/t31tic_color.ppm', 100_000);
+    cmpimg($img1, 'testimg/t31tic_color.png', 100_000);
 }
 else {
-    cmpimg($img1, 'testimg/t31tic_color_CMA.ppm', 100_000);
+    cmpimg($img1, 'testimg/t31tic_color_CMA.png', 100_000);
 }
 
 unless (is(@warned, 0, "should be no warnings")) {

@@ -40,7 +40,7 @@ my $img1 = $bar->draw();
 ok($img1, "drawing bar chart");
 
 $img1->write(file=>'testout/t34_points.ppm') or die "Can't save img1: ".$img1->errstr."\n";
-cmpimg($img1, 'testimg/t34_points.ppm', 80_000);
+cmpimg($img1, 'testimg/t34_points.png', 80_000);
 
 unless (is(@warned, 0, "should be no warnings")) {
   diag($_) for @warned;
