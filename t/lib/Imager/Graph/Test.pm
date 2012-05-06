@@ -8,6 +8,8 @@ our @ISA = qw(Exporter);
 
 our @EXPORT_OK = qw(cmpimg);
 
+our $VERSION = "0.10";
+
 sub cmpimg ($$;$$) {
   my ($img, $filename, $error, $note) = @_;
 

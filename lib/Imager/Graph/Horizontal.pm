@@ -13,6 +13,8 @@ use Imager::Graph;
 
 use constant STARTING_MIN_VALUE => 99999;
 
+our $VERSION = "0.10";
+
 =over 4
 
 =item add_data_series(\@data, $series_name)
