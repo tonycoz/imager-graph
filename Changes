@@ -18,6 +18,8 @@ Imager-Graph 0.10 - unreleased
    negative_bg color filled from the left side of the chart off the
    right side of the image.
 
+ - Imager::Graph now requires at least perl 5.6.
+
 Imager-Graph 0.09 - 05 Aug 2010
 =================
 

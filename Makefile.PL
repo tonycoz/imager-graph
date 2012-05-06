@@ -19,10 +19,14 @@ if ($MM_ver >= 6.46) {
      resources =>
      {
       homepage => "http://imager.perl.org/",
-      repository => "git://git.imager.perl.org/imager.git",
+      repository => "git://git.imager.perl.org/imager-graph.git",
       bugtracker => "http://rt.cpan.org/NoAuth/Bugs.html?Dist=Imager-Graph",
      },
     };
+}
+
+if ($MM_ver >= 6.48) {
+  $opts{MIN_PERL_VERSION} = "5.006";
 }
 
 WriteMakefile(
