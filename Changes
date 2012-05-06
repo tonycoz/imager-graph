@@ -20,6 +20,10 @@ Imager-Graph 0.10 - unreleased
 
  - Imager::Graph now requires at least perl 5.6.
 
+ - hoisted the common cmpimg() function into a separate test module
+
+ - convert shipped comparison images from ppm to png to reduce size
+
 Imager-Graph 0.09 - 05 Aug 2010
 =================
 
