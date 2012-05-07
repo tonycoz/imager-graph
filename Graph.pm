@@ -1,5 +1,5 @@
 package Imager::Graph;
-require 5.005;
+require 5.006;
 
 =head1 NAME
 
