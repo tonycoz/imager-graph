@@ -1428,3 +1428,9 @@ sub _composite {
 1;
 
 =back
+
+=head1 AUTHOR
+
+Patrick Michaud, Tony Cook.
+
+=cut
