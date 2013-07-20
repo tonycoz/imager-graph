@@ -1,5 +1,10 @@
 Revision history for Perl extension Imager::Graph.
 
+ - POD fixes based on a report from Stefan Limbache
+
+ - skip POD tests unless AUTOMATED_TESTING or IMAGER_AUTHOR_TESTING is
+   set.
+
 Imager-Graph 0.10 - 7 May 2012
 =================
 
