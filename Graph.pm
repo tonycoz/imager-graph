@@ -2697,7 +2697,7 @@ Imager::Graph::Pie(3), Imager(3), perl(1).
 
 =head1 AUTHOR
 
-Tony Cook <tony@develop-help.com>
+Tony Cook <tonyc@cpan.org>, Patrick Michaud
 
 =head1 LICENSE
 
