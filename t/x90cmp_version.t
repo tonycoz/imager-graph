@@ -16,7 +16,7 @@ my @changed = grep /\.pm$/ && m(/),
 
 chomp @changed;
 
-plan tests => 1;
+plan tests => scalar @changed;
 
 my @need_update;
 for my $file (@changed) {
@@ -25,19 +25,18 @@ for my $file (@changed) {
   my $curr_version = eval { MM->parse_version($file) };
 
   if ($curr_version ne "undef" && $orig_version ne "undef") {
-    push @need_update, "$file - out of date"
-      if $curr_version < $orig_version;
+    cmp_ok($curr_version, '>', $orig_version, "$file - out of date");
   }
   elsif ($orig_version ne "undef") {
-    push @need_update, "$file - version was removed";
+    fail("$file - version was removed");
   }
   elsif ($curr_version eq "undef") {
-    push @need_update, "$file - has no version";
+    fail("$file - has no version");
+  }
+  else {
+    pass($file);
   }
 }
-
-ok(@need_update == 0, "check versions updated");
-diag $_ for @need_update;
 
 sub get_file_from_git {
     my ($file, $tag) = @_;

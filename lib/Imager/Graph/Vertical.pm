@@ -40,7 +40,7 @@ use Imager::Graph;
 @ISA = qw(Imager::Graph);
 use Imager::Fill;
 
-our $VERSION = "0.10";
+our $VERSION = "0.11";
 
 use constant STARTING_MIN_VALUE => 99999;
 
