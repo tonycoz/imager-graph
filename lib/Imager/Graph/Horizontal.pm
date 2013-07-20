@@ -580,8 +580,6 @@ sub _add_data_series {
   return;
 }
 
-=over
-
 =item show_vertical_gridlines()
 
 Shows vertical gridlines at the y-tics.
@@ -908,3 +906,4 @@ sub _composite {
 
 1;
 
+=back

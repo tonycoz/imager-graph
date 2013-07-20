@@ -1426,3 +1426,5 @@ sub _composite {
 }
 
 1;
+
+=back
