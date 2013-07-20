@@ -1,13 +1,13 @@
 #!perl -w
 use strict;
-require 5.005;
+require 5.006;
 use ExtUtils::MakeMaker;
 my %opts;
 # eval to prevent warnings about versions with _ in them
 my $MM_ver = eval $ExtUtils::MakeMaker::VERSION;
 if ($MM_ver > 6.06) {
   $opts{AUTHOR} = 'Tony Cook <tony@develop-help.com>';
-  $opts{ABSTRACT} = 'Draws good looking pie graphs';
+  $opts{ABSTRACT} = 'Draws good looking charts';
 }
 if ($MM_ver >= 6.31) {
   $opts{LICENSE} = 'perl';
