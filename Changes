@@ -1,5 +1,8 @@
 Revision history for Perl extension Imager::Graph.
 
+Imager-Graph 0.12 - 12 May 2015
+=================
+
  - increase tolerances on images with filled circles drawn on them to
    account for the circle drawing change in Imager 1.002.
    https://rt.cpan.org/Ticket/Display.html?id=103328
