@@ -16,6 +16,9 @@ my @changed = grep /\.pm$/ && m(/),
 
 chomp @changed;
 
+@changed
+  or plan skip_all => "No .pm files changed";
+
 plan tests => scalar @changed;
 
 my @need_update;
